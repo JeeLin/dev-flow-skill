@@ -285,9 +285,9 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 **触发条件**：步骤7已完成，Flow Status 步骤8 未勾选
 
 1. 检查：commit 粒度（一子功能点一 commit）、commit message 格式、产品文档未被污染
-2. 检查里程碑文档保留情况
-3. 更新版本号（见版本管理）
-4. 勾选步骤8，提示：里程碑已完成
+2. 更新项目文件中的版本号（见版本管理）
+3. 勾选步骤8
+4. 提交里程碑文档和所有报告文件到 git：`git add docs/milestones/ && git commit -m "docs: milestone {version} completed"`
 
 **门禁**：所有检查通过
 
