@@ -1,0 +1,10 @@
+# 测试产物
+dev-flow-workspace/
+
+# Node
+node_modules/
+.bun/
+
+# OS
+.DS_Store
+Thumbs.db
