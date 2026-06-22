@@ -285,10 +285,13 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 **触发条件**：步骤5已完成，Flow Status 步骤6 未勾选
 
-1. 从 `CLAUDE.md` 识别测试命令并运行
-2. 按质量门禁（见基础数据）依次执行：编译检查、Lint 检查、测试覆盖率检查
-3. 测试报告写入 `{version}-reports/step6-test.md`，包含各项检查结果
-4. 全部通过 → 勾选步骤6；有失败 → 取消步骤6勾选，用户修复后重入步骤6
+1. 按质量门禁（见基础数据）依次执行：
+   - 测试命令（`CLAUDE.md` 中定义）
+   - 编译检查（默认按项目类型自动选择，`CLAUDE.md` 可覆盖）
+   - Lint 检查（默认按项目类型自动选择，`CLAUDE.md` 可覆盖）
+   - 测试覆盖率（默认按项目类型自动选择，`CLAUDE.md` 可覆盖）
+2. 测试报告写入 `{version}-reports/step6-test.md`，逐项记录检查结果和数值（如覆盖率百分比）
+3. 全部通过 → 勾选步骤6；任一项失败（测试报错 / 编译 error / Lint error / 覆盖率未达标）→ 取消步骤6勾选，提示用户具体失败项，用户修复后重入步骤6
 
 **门禁**：测试全部通过 + 编译无 error + Lint 无 error + 覆盖率达到阈值
 
@@ -323,5 +326,6 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 | JavaScript/TypeScript | `package.json` | `bun version patch/minor/major`（优先 bun，无 bun 时回退到 npm） |
 | Rust | `Cargo.toml` | 手动修改，或使用 `cargo-release` |
 | Python | `pyproject.toml` / `setup.cfg` | 手动修改 |
+| Go | `go.mod` | 手动修改（`go mod edit -version=vX.Y.Z`） |
 
 步骤1 确定版本号规则：读取项目文件中的当前版本号，根据里程碑内容自动判断递增类型（patch/minor/major）。
