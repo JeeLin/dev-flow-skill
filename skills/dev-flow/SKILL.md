@@ -89,7 +89,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 ## Context
 前序阶段完成了什么，本阶段在整体产品中的位置。
-版本类型：minor（默认）/ patch（小修复）/ major（重大变更）
+版本类型：patch（纯修复）/ minor（新功能）/ major（破坏性变更），由步骤1根据里程碑内容自动判断
 
 ## 产品边界
 本阶段做什么、不做什么。
@@ -203,7 +203,10 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 1. 读取产品文档、开发文档、原型代码
 2. 读取已完成的里程碑文档（如有），确定当前版本号
-3. 确定新里程碑版本号：在当前版本号基础上递增 minor（如 v1.0.0 → v1.1.0），除非 Context 明确标注 patch 或 major
+3. 确定新里程碑版本号：根据里程碑内容自动判断递增类型（如 v1.0.0 → v1.0.1 或 v1.1.0 或 v2.0.0）
+   - **patch**：纯修复、重构、文档更新，无新功能
+   - **minor**：新增功能，向后兼容（默认）
+   - **major**：破坏性变更（API 不兼容、架构重构）
 4. 按模板创建里程碑文档，子任务拆分到 1-2 个 commit 的粒度
 5. 提交里程碑文档：`git add {milestone-path} && git commit -m "docs: create milestone {version}"`
 6. 勾选步骤1
@@ -305,4 +308,4 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 | Rust | `Cargo.toml` | 手动修改，或使用 `cargo-release` |
 | Python | `pyproject.toml` / `setup.cfg` | 手动修改 |
 
-步骤1 确定版本号规则：读取项目文件中的当前版本号，递增 minor（如 v1.0.0 → v1.1.0）。里程碑文档 Context 段落标注 patch 或 major 时按标注执行。
+步骤1 确定版本号规则：读取项目文件中的当前版本号，根据里程碑内容自动判断递增类型（patch/minor/major）。
