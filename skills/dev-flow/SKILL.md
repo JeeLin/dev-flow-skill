@@ -313,13 +313,13 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 2. 更新项目文件中的版本号（见版本管理）
 3. 更新 `CHANGELOG.md`：在文件顶部添加新版本条目，记录本里程碑的功能变更、修复和改动
 4. 勾选步骤8
-5. 提交里程碑文档、报告文件和 CHANGELOG 到 git：`git add docs/milestones/ CHANGELOG.md && git commit -m "docs: milestone {version} completed"`
+5. 提交里程碑文档、开发文档、报告文件和 CHANGELOG 到 git：`git add docs/milestones/ docs/DEVELOPMENT.md CHANGELOG.md && git commit -m "docs: milestone {version} completed"`
 
 **门禁**：所有检查通过
 
 ### 版本管理
 
-版本号在步骤1 确定并写入里程碑文档，步骤8 负责更新项目文件中的版本号：
+版本号在步骤1 根据已完成里程碑确定并写入里程碑文档，步骤8 负责更新项目文件中的版本号：
 
 | 项目类型 | 检测文件 | 更新命令 |
 |----------|----------|----------|

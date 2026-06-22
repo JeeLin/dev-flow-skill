@@ -1,0 +1,58 @@
+{
+  "skill_name": "dev-flow",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "开始 v1.0.0 基础架构的开发",
+      "expected_output": "读取 package.json 版本号，按模板创建里程碑文档到 docs/milestones/，Flow Status 步骤1已勾选",
+      "assertions": [
+        {"text": "读取了 package.json 版本号", "type": "must"},
+        {"text": "创建了 docs/milestones/ 目录下的里程碑文档", "type": "must"},
+        {"text": "里程碑文档包含所有模板字段", "type": "must"},
+        {"text": "Flow Status 步骤1已勾选", "type": "must"},
+        {"text": "版本号递增正确", "type": "must"},
+        {"text": "子任务拆分粒度合理", "type": "should"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "继续开发 v1.3.0，看看现在到哪一步了",
+      "expected_output": "读取现有里程碑文档 Flow Status，正确识别当前步骤，执行该步骤",
+      "assertions": [
+        {"text": "读取了现有里程碑文档的 Flow Status", "type": "must"},
+        {"text": "正确识别当前步骤", "type": "must"},
+        {"text": "执行了当前步骤的任务", "type": "must"},
+        {"text": "没有跳步或重复执行已完成的步骤", "type": "must"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "步骤5的代码审查报告有🔴必须修复项，需要修复后重入步骤5",
+      "expected_output": "取消步骤5勾选，追加打回记录，重命名报告为.rejected，记录原因，提示修复内容，用户修复后重入步骤5",
+      "assertions": [
+        {"text": "取消了步骤5及后续步骤的 Flow Status 勾选", "type": "must"},
+        {"text": "在打回记录表格中追加了一行", "type": "must"},
+        {"text": "将失败报告文件重命名为 .rejected 后缀", "type": "must"},
+        {"text": "记录了打回原因摘要", "type": "must"},
+        {"text": "提示用户需要修复的内容", "type": "must"},
+        {"text": "用户修复后重入步骤5（而非步骤3）", "type": "must"}
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "开始 dev-flow，项目是全新的",
+      "expected_output": "调用 milestone-planner 规划里程碑，用户确认后创建里程碑文档",
+      "assertions": [
+        {"text": "检测到 DEVELOPMENT.md 为空或无下一个里程碑", "type": "must"},
+        {"text": "调用 milestone-planner 技能", "type": "must"},
+        {"text": "规划结果包含核心功能、子任务预估、依赖关系、版本类型", "type": "must"},
+        {"text": "等待用户确认后再继续", "type": "must"},
+        {"text": "确认后按模板创建里程碑文档", "type": "must"}
+      ],
+      "files": []
+    }
+  ]
+}
