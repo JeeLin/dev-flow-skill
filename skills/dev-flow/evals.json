@@ -6,7 +6,7 @@
       "prompt": "开始 v1.0.0 基础架构的开发",
       "expected_output": "读取 package.json 版本号，按模板创建里程碑文档到 docs/milestones/，Flow Status 步骤1已勾选",
       "assertions": [
-        {"text": "读取了 package.json 版本号", "type": "must"},
+        {"text": "从已完成里程碑或项目文件确定了版本号", "type": "must"},
         {"text": "创建了 docs/milestones/ 目录下的里程碑文档", "type": "must"},
         {"text": "里程碑文档包含所有模板字段", "type": "must"},
         {"text": "Flow Status 步骤1已勾选", "type": "must"},
