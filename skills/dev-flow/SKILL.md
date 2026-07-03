@@ -313,7 +313,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 1. 检查：commit 粒度（一子功能点一 commit）、commit message 格式、产品文档未被污染
 2. 更新项目文件中的版本号（见版本管理）
-3. 更新 `CHANGELOG.md`：在文件顶部添加新版本条目，记录本里程碑的功能变更、修复和改动
+3. 更新 `CHANGELOG.md`：在文件顶部添加新版本条目，遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。分类用 Added / Changed / Fixed / Removed，每条以 `- 功能名称：描述` 格式记录
 4. 勾选步骤8
 5. 提交里程碑文档、开发文档、报告文件和 CHANGELOG 到 git：`git add docs/milestones/ docs/DEVELOPMENT.md CHANGELOG.md && git commit -m "docs: milestone {version} completed"`
 
