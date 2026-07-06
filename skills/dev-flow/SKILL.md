@@ -329,7 +329,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
      - 登录页面：修复表单提交后未重置状态的问题
      ```
 4. 勾选步骤8
-5. 提交里程碑文档、开发文档、报告文件和 CHANGELOG 到 git：`git add docs/milestones/ docs/DEVELOPMENT.md CHANGELOG.md && git commit -m "docs: milestone {version} completed"`
+5. 提交里程碑文档、开发文档、报告文件、版本文件和 CHANGELOG 到 git：`git add docs/milestones/ docs/DEVELOPMENT.md CHANGELOG.md {version-file} && git commit -m "docs: milestone {version} completed"`（`{version-file}` 为步骤8.2更新的版本文件，如 `package.json`、`Cargo.toml`、`go.mod` 等）
 
 **门禁**：所有检查通过
 
