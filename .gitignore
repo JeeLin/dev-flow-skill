@@ -1,9 +1,8 @@
 # 测试产物
 dev-flow-workspace/
+.dev-flow
 
 
-# OMP project-level skill symlinks
-.omp/
 # Node
 node_modules/
 .bun/

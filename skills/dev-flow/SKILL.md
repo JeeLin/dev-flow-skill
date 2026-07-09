@@ -43,7 +43,7 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 其他语言在 `AGENTS.md` 中自定义。如果项目不需要某项检查（如无类型系统），将对应命令设为空即可跳过。
 
 **里程碑规划**：如果 DEVELOPMENT.md 为空或未定义下一个里程碑，调用 `milestone-planner` 技能进行规划，规划结果经用户确认后再继续步骤1。
-**执行日志**：如果环境变量 `DEV_FLOW_LOG=1`（见 `skill://dev-flow/logging.md`），按事件类型记录日志到 `.dev-flow/log.jsonl`：步骤执行（`step`）、打回（`reject`）、门禁检查（`gate`）、里程碑规划（`plan`）、版本决策（`version`）。未设置则跳过。步骤1 执行时清理 30 天前的日志。
+**执行日志**：环境变量 `DEV_FLOW_LOG=1` 时，**每个步骤执行完毕后必须**追加日志。先确保目录存在，再 append 一行 JSONL。详见 `skill://dev-flow/logging.md`。未设置则跳过。
 
 ## 状态机
 
@@ -89,6 +89,27 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
     → 提示：里程碑已完成，可以开始下一个
 ```
 
+## 日志写入
+
+环境变量 `DEV_FLOW_LOG=1` 时，**每个步骤执行完毕后必须**执行以下命令追加日志（`bash` 工具）。未设置则跳过。
+
+```bash
+mkdir -p .dev-flow && echo '{"ts":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","event":"step","version":"'"$VERSION"'","step":STEP_NUM,"action":"complete"}' >> .dev-flow/log.jsonl
+```
+
+将 `$VERSION`、`STEP_NUM` 替换为实际值。打回时用 `event:"reject"` 替换，字段见 `skill://dev-flow/logging.md`。
+
+步骤 1 额外执行清理（删除 30 天前的日志行）：
+
+```bash
+python3 -c "
+import json,datetime,os
+p='.dev-flow/log.jsonl'
+if os.path.exists(p):
+  c=(datetime.datetime.now()-datetime.timedelta(days=30)).isoformat()
+  open(p,'w').writelines(l for l in open(p) if json.loads(l).get('ts','')>=c)
+"
+```
 ## 里程碑文档
 
 ### 位置
