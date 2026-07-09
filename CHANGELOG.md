@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-09
+
+### Added
+
+- 执行日志机制：支持通过 `DEV_FLOW_LOG=1` 环境变量开启，记录 5 种结构化事件（step/reject/gate/plan/version）
+- 日志分析矩阵：拒绝原因分类（design/code_quality/security/test_failure/gate_failure），支持聚合分析优化审查维度
+- 30 天日志自动清理：步骤 1 执行时删除过期日志行
+
+### Changed
+
+- 平台兼容：`CLAUDE.md` 引用全部替换为 `AGENTS.md`（OMP 约定）
+- 循环命令泛化：移除 Claude Code 专属 `/loop`、`/compact` 引用，改为平台通用描述
+- 版本更新命令泛化：`bun version` 改为环境无关的包管理器描述
+- README 更新：适配 OMP 安装说明
+
 ## [0.5.0] - 2026-06-23
 
 ### Fixed
