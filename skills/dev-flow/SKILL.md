@@ -43,6 +43,7 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 其他语言在 `AGENTS.md` 中自定义。如果项目不需要某项检查（如无类型系统），将对应命令设为空即可跳过。
 
 **里程碑规划**：如果 DEVELOPMENT.md 为空或未定义下一个里程碑，调用 `milestone-planner` 技能进行规划，规划结果经用户确认后再继续步骤1。
+**执行日志**：如果环境变量 `DEV_FLOW_LOG=1`（见 `skill://dev-flow/logging.md`），按事件类型记录日志到 `.dev-flow/log.jsonl`：步骤执行（`step`）、打回（`reject`）、门禁检查（`gate`）、里程碑规划（`plan`）、版本决策（`version`）。未设置则跳过。步骤1 执行时清理 30 天前的日志。
 
 ## 状态机
 
