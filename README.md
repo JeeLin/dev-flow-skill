@@ -1,6 +1,6 @@
 # dev-flow
 
-Claude Code 里程碑开发流程 skill。自动检测项目状态，串行驱动 8 步开发流程。
+里程碑开发流程 skill。自动检测项目状态，串行驱动 8 步开发流程。
 
 ## 安装
 
@@ -11,11 +11,12 @@ git clone git@github.com:JeeLin/dev-flow-skill.git ~/dev-flow-skill
 # 创建 skill 目录并 symlink
 mkdir -p ~/.claude/skills
 ln -s ~/dev-flow-skill/skills/dev-flow ~/.claude/skills/dev-flow
+ln -s ~/dev-flow-skill/skills/milestone-planner ~/.claude/skills/milestone-planner
 ```
 
 ## 使用
 
-在任何项目的 Claude Code 会话中输入：
+在任何项目的会话中输入：
 
 ```
 /dev-flow
@@ -40,7 +41,7 @@ Skill 会自动检测当前项目状态，从上次完成的步骤继续。
 
 需要项目中有以下文件：
 
-- `CLAUDE.md` — 项目约定（技术栈、代码规范、目录结构）
+- `AGENTS.md` — 项目约定（技术栈、代码规范、目录结构）
 - `docs/PRODUCT.md` — 产品定位和功能边界
 - `docs/milestones/` — 里程碑文档目录
 

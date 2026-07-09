@@ -13,8 +13,8 @@ description: 基于产品文档自动规划里程碑。按底层到上层、核�
 
 | 数据 | 路径 | 作用 | 必需 |
 |------|------|------|------|
-| 产品文档 | 默认 `docs/PRODUCT.md`，以 `CLAUDE.md` 定义为准 | 功能边界、用户可见流程 | 是 |
-| 开发设计文档 | 默认 `docs/DEVELOPMENT.md`，以 `CLAUDE.md` 定义为准 | 已规划的里程碑列表 | 否 |
+| 产品文档 | 默认 `docs/PRODUCT.md`，以 `AGENTS.md` 定义为准 | 功能边界、用户可见流程 | 是 |
+| 开发设计文档 | 默认 `docs/DEVELOPMENT.md`，以 `AGENTS.md` 定义为准 | 已规划的里程碑列表 | 否 |
 | 已完成里程碑 | `docs/milestones/` 目录 | 确定已完成的版本号和功能 | 否 |
 | 项目版本 | `package.json` 等项目文件 | 版本号参考（实际递增以已完成里程碑为准） | 否 |
 

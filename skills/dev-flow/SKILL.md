@@ -11,13 +11,13 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 
 ### 循环与上下文管理
 
-循环执行和上下文压缩通过 Claude Code 的内置命令实现，技能本身不包含循环逻辑：
+循环执行和上下文压缩通过平台内置命令实现，技能本身不包含循环逻辑：
 
-- **连续执行**：使用 `/loop 5m /dev-flow` 每 5 分钟自动调用一次，技能每次从里程碑文档读取状态，自动执行下一步
-- **上下文压缩**：使用 `/loop 30m /compact` 定期压缩上下文，避免对话过长
-- **手动恢复**：上下文截断后直接调用 `/dev-flow`，状态机从里程碑文档的 Flow Status 恢复进度
+- **连续执行**：使用连续调用机制（如 OMP 的 `/loop` 命令）定期自动调用技能，每次从里程碑文档读取状态，自动执行下一步
+- **上下文压缩**：定期压缩上下文，避免对话过长
+- **手动恢复**：上下文截断后直接调用技能，状态机从里程碑文档的 Flow Status 恢复进度
 
-关键原则：所有状态写入里程碑文档，不依赖对话记忆。无论上下文如何变化，重新调用 `/dev-flow` 都能从文档中恢复。
+关键原则：所有状态写入里程碑文档，不依赖对话记忆。无论上下文如何变化，重新调用技能都能从文档中恢复。
 
 ## 基础数据
 
@@ -25,28 +25,28 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 
 | 数据 | 路径 | 作用 | 必需 |
 |------|------|------|------|
-| 项目约定 | `CLAUDE.md` | 技术栈、代码规范、目录结构、测试命令、审查维度 | 是 |
-| 产品文档 | 默认 `docs/PRODUCT.md`，以 `CLAUDE.md` 定义为准 | 产品定位、功能边界、用户可见流程 | 是 |
-| 开发设计文档 | 默认 `docs/DEVELOPMENT.md`，以 `CLAUDE.md` 定义为准 | 整体规划、里程碑划分、架构决策 | 是 |
-| 原型代码 | 默认 `prototype/`，以 `CLAUDE.md` 定义为准 | 前端交互参考、UI 布局参考 | 否 |
+| 项目约定 | `AGENTS.md` | 技术栈、代码规范、目录结构、测试命令、审查维度 | 是 |
+| 产品文档 | 默认 `docs/PRODUCT.md`，以 `AGENTS.md` 定义为准 | 产品定位、功能边界、用户可见流程 | 是 |
+| 开发设计文档 | 默认 `docs/DEVELOPMENT.md`，以 `AGENTS.md` 定义为准 | 整体规划、里程碑划分、架构决策 | 是 |
+| 原型代码 | 默认 `prototype/`，以 `AGENTS.md` 定义为准 | 前端交互参考、UI 布局参考 | 否 |
 
-**前置检查**：执行前检查必需文件是否存在。如果 `CLAUDE.md`、产品文档或开发设计文档缺失，提示用户先创建这些文件再执行 dev-flow。
+**前置检查**：执行前检查必需文件是否存在。如果 `AGENTS.md`、产品文档或开发设计文档缺失，提示用户先创建这些文件再执行 dev-flow。
 
-**质量门禁**：步骤6使用以下默认质量门禁，`CLAUDE.md` 中定义的 `## 质量门禁` 段落可覆盖默认值：
+**质量门禁**：步骤6使用以下默认质量门禁，`AGENTS.md` 中定义的 `## 质量门禁` 段落可覆盖默认值：
 
-| 检查项 | JS/TS 项目 | Python 项目 | Rust 项目 | Go 项目 | CLAUDE.md 可覆盖字段 |
+| 检查项 | JS/TS 项目 | Python 项目 | Rust 项目 | Go 项目 | AGENTS.md 可覆盖字段 |
 |--------|-----------|------------|----------|---------|----------------------|
 | 编译检查 | `bunx tsc --noEmit` | `mypy .` | `cargo check` | `go build ./...` | `编译命令` |
 | Lint 检查 | `bun run lint` 无 error（warning 可忽略） | `ruff check .` 无 error（warning 可忽略） | `cargo clippy -- -D warnings` | `golangci-lint run` | `Lint 命令`、`Lint 规则` |
 | 测试覆盖率 | `bun test --coverage` 达到 90% | `pytest --cov=. --cov-report=term-missing` 达到 90% | `cargo llvm-cov` 达到 90% | `go test -coverprofile` 达到 90% | `覆盖率命令`、`最低覆盖率` |
 
-其他语言在 `CLAUDE.md` 中自定义。如果项目不需要某项检查（如无类型系统），将对应命令设为空即可跳过。
+其他语言在 `AGENTS.md` 中自定义。如果项目不需要某项检查（如无类型系统），将对应命令设为空即可跳过。
 
 **里程碑规划**：如果 DEVELOPMENT.md 为空或未定义下一个里程碑，调用 `milestone-planner` 技能进行规划，规划结果经用户确认后再继续步骤1。
 
 ## 状态机
 
-按顺序匹配，命中第一个即执行。每次调用执行一个步骤，执行完即停止。连续执行通过 `/loop` 命令实现。
+按顺序匹配，命中第一个即执行。每次调用执行一个步骤，执行完即停止。连续执行通过平台连续调用机制实现。
 
 状态机以里程碑文档的 Flow Status 为准。如果 Flow Status 显示某步骤已完成，但实际子任务状态不一致（如步骤3已勾选但子任务仍有 ⬜），以 Flow Status 为准继续推进，不回头补做。
 
@@ -92,7 +92,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 ### 位置
 
-默认 `docs/milestones/{version}-{name}.md`（如 `v1.0.0-基础架构.md`），项目 `CLAUDE.md` 可覆盖。
+默认 `docs/milestones/{version}-{name}.md`（如 `v1.0.0-基础架构.md`），项目 `AGENTS.md` 可覆盖。
 
 ### 模板
 
@@ -179,7 +179,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 - **步骤2（开发前）**：检查里程碑文档 vs 产品文档，验证设计是否合理
 - **步骤7（开发后）**：检查已实现代码 vs 里程碑文档，验证实现是否正确
 
-`CLAUDE.md` 中定义的审查维度在此两个阶段均纳入检查。
+`AGENTS.md` 中定义的审查维度在此两个阶段均纳入检查。
 
 ---
 
@@ -264,7 +264,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 **触发条件**：步骤3已完成，Flow Status 步骤4 未勾选
 
 1. 读取最近修改的文件（git diff / git log）
-2. 按 `CLAUDE.md` 中约定的维度检查并修复
+2. 按 `AGENTS.md` 中约定的维度检查并修复
 3. 精简报告写入 `{version}-reports/step4-simplify.md`
 4. 勾选步骤4
 
@@ -288,10 +288,10 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 **触发条件**：步骤5已完成，Flow Status 步骤6 未勾选
 
 1. 按质量门禁（见基础数据）依次执行：
-   - 测试命令（`CLAUDE.md` 中定义）
-   - 编译检查（默认按项目类型自动选择，`CLAUDE.md` 可覆盖）
-   - Lint 检查（默认按项目类型自动选择，`CLAUDE.md` 可覆盖）
-   - 测试覆盖率（默认按项目类型自动选择，`CLAUDE.md` 可覆盖）
+   - 测试命令（`AGENTS.md` 中定义）
+   - 编译检查（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
+   - Lint 检查（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
+   - 测试覆盖率（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
 2. 测试报告写入 `{version}-reports/step6-test.md`，逐项记录检查结果和数值（如覆盖率百分比）
 3. 全部通过 → 勾选步骤6；任一项失败（测试报错 / 编译 error / Lint error / 覆盖率未达标）→ 取消步骤6勾选，提示用户具体失败项，用户修复后重入步骤6
 
@@ -339,7 +339,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 | 项目类型 | 检测文件 | 更新命令 |
 |----------|----------|----------|
-| JavaScript/TypeScript | `package.json` | `bun version patch/minor/major`（优先 bun，无 bun 时回退到 npm） |
+| JavaScript/TypeScript | `package.json` | 使用包管理器更新版本（如 `npm version`、`bun version` 或手动修改） |
 | Rust | `Cargo.toml` | 手动修改，或使用 `cargo-release` |
 | Python | `pyproject.toml` / `setup.cfg` | 手动修改 |
 | Go | `go.mod` | 手动修改（`go mod edit -version=vX.Y.Z`） |
