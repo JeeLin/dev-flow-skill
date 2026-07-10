@@ -43,7 +43,7 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 其他语言在 `AGENTS.md` 中自定义。如果项目不需要某项检查（如无类型系统），将对应命令设为空即可跳过。
 
 **里程碑规划**：如果 DEVELOPMENT.md 为空或未定义下一个里程碑，调用 `milestone-planner` 技能进行规划，规划结果经用户确认后再继续步骤1。
-**执行日志**：环境变量 `DEV_FLOW_LOG=1` 时，**每个步骤执行完毕后必须**追加日志。先确保目录存在，再 append 一行 JSONL。详见 `skill://dev-flow/logging.md`。未设置则跳过。
+**执行日志**：环境变量 `DEV_FLOW_LOG=1` 时，**每个步骤执行完毕后必须**调用 `skill://dev-flow/log.sh` 追加日志。详见 `skill://dev-flow/logging.md`。未设置则跳过。
 
 ## 状态机
 
@@ -91,25 +91,32 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 ## 日志写入
 
-环境变量 `DEV_FLOW_LOG=1` 时，**每个步骤执行完毕后必须**执行以下命令追加日志（`bash` 工具）。未设置则跳过。
+环境变量 `DEV_FLOW_LOG=1` 时，**每个步骤执行完毕后必须**调用 helper 脚本追加日志。未设置则跳过。
 
+脚本路径：`skill://dev-flow/log.sh`（解析为绝对路径）。日志固定写入 `{project-root}/.dev-flow/log.jsonl`。
+
+**调用方式**（所有事件共用）：通过环境变量传递 JSON 值，避免 shell 引号问题。
+
+| 事件 | 命令 | 环境变量 |
+|------|------|----------|
+| 步骤完成 | `bash <脚本路径> step <version> <step_num>` | `LOG_EXTRA`（可选） |
+| 打回 | `bash <脚本路径> reject <version> <step_num> <category> '<detail>'` | `LOG_EXTRA`（可选） |
+| 门禁 | `bash <脚本路径> gate` | `LOG_CHECKS` |
+| 规划 | `bash <脚本路径> plan <version> <type> <count>` | `LOG_FEATURES`, `LOG_EXTRA`（可选） |
+| 版本 | `bash <脚本路径> version <from> <to> <type> <file>` | — |
+| 清理（步骤1） | `bash <脚本路径> cleanup` | — |
+
+category 取值：`design` / `code_quality` / `security` / `test_failure` / `gate_failure` / `other`。
+
+示例：
 ```bash
-mkdir -p .dev-flow && echo '{"ts":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","event":"step","version":"'"$VERSION"'","step":STEP_NUM,"action":"complete"}' >> .dev-flow/log.jsonl
+LOG_EXTRA='{"subtasks":{"total":5,"done":5}}' bash <脚本路径> step v1.1.0 3
+LOG_EXTRA='{"file":"src/auth.ts"}' bash <脚本路径> reject v1.1.0 5 security '权限缺少验证'
+LOG_CHECKS='[{"name":"compile","passed":true},{"name":"lint","passed":false}]' bash <脚本路径> gate
+LOG_FEATURES='["用户CRUD","前端列表"]' bash <脚本路径> plan v1.1.0 minor 2
 ```
 
-将 `$VERSION`、`STEP_NUM` 替换为实际值。打回时用 `event:"reject"` 替换，字段见 `skill://dev-flow/logging.md`。
-
-步骤 1 额外执行清理（删除 30 天前的日志行）：
-
-```bash
-python3 -c "
-import json,datetime,os
-p='.dev-flow/log.jsonl'
-if os.path.exists(p):
-  c=(datetime.datetime.now()-datetime.timedelta(days=30)).isoformat()
-  open(p,'w').writelines(l for l in open(p) if json.loads(l).get('ts','')>=c)
-"
-```
+完整字段规范见 `skill://dev-flow/logging.md`。
 ## 里程碑文档
 
 ### 位置
