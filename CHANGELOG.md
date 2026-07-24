@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- **devflow-review 技能**：新增独立的审查框架技能，覆盖设计审查（步骤2/7）和代码审查（步骤5）
+  - 报告模板：`step2-design-review.md`、`step5-code-review.md`、`step7-design-reconfirm.md`
+  - 审查维度：从 `AGENTS.md` 的 `## 审查维度` 读取
+  - 通过条件：所有维度 ✅ 且无 🔴 必须修复项
+
+### Changed
+
+- **dev-flow 技能更新**：步骤2、5、7 改为调用 `devflow-review` 技能
+  - 步骤2：设计审查，传入里程碑文档和产品文档
+  - 步骤5：代码审查，传入 git diff 文件列表
+  - 步骤7：设计再确认，传入已实现代码和里程碑文档
+
+### Removed
+
+- **evals.json**：移除 dev-flow 的评估文件
+
+### Fixed
+
+- **步骤编号引用**：修正"从步骤2.1开始"为"从步骤2的第一步开始"
+
 ## [0.6.0] - 2026-07-09
 
 ### Changed
