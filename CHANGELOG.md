@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - 审查维度：从 `AGENTS.md` 的 `## 审查维度` 读取
   - 通过条件：所有维度 ✅ 且无 🔴 必须修复项
 
+- **dev-flow Bug 支持**：在里程碑开发过程中记录和处理 bug
+  - 里程碑文档新增 Bugs 表格（优先级 + 来源 + 描述）
+  - 步骤3（开发）先完成子任务，再按优先级处理 bug（🔴 > 🟡 > 🟢）
+  - 步骤2/5/6/7 支持添加发现的问题到 Bugs 表格
+  - 步骤3完成条件包含 Bugs 表格检查
+
 ### Changed
 
 - **dev-flow 技能更新**：步骤2、5、7 改为调用 `devflow-review` 技能
