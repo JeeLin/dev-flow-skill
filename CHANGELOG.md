@@ -25,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - 步骤2：设计审查，传入里程碑文档和产品文档
   - 步骤5：代码审查，传入 git diff 文件列表
   - 步骤7：设计再确认，传入已实现代码和里程碑文档
-
+- **步骤3 原则更新**：明确代码提交时机 - 实现每个子任务后立即提交，修复每个 bug 后立即提交
 ### Removed
 
 - **evals.json**：移除 dev-flow 的评估文件
