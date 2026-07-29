@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - 步骤2/5/6/7 支持添加发现的问题到 Bugs 表格
   - 步骤3完成条件包含 Bugs 表格检查
 
+- **Bug 收集入口**：里程碑文档创建后，支持 `/bug` 命令和自然语言两种方式随时提交 bug，Claude 自动判断优先级并写入 Bugs 表格
+
 ### Changed
 
 - **dev-flow 技能更新**：步骤2、5、7 改为调用 `devflow-review` 技能
@@ -33,7 +35,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 
 - **步骤编号引用**：修正"从步骤2.1开始"为"从步骤2的第一步开始"
-
 - **Rust Cargo.lock 同步**：步骤8 更新版本号后同步 Cargo.lock；步骤6 增加前置检查验证 lock 文件一致性
 
 ## [0.6.0] - 2026-07-09
