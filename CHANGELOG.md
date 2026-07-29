@@ -34,6 +34,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - **步骤编号引用**：修正"从步骤2.1开始"为"从步骤2的第一步开始"
 
+- **Rust Cargo.lock 同步**：步骤8 更新版本号后同步 Cargo.lock；步骤6 增加前置检查验证 lock 文件一致性
+
 ## [0.6.0] - 2026-07-09
 
 ### Changed

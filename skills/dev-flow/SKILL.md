@@ -318,13 +318,14 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 **触发条件**：步骤5已完成，Flow Status 步骤6 未勾选
 
-1. 按质量门禁（见基础数据）依次执行：
+1. **前置检查**：Rust 项目先运行 `cargo check`，验证 `Cargo.lock` 与 `Cargo.toml` 版本一致，不一致则提示修复后再进入测试
+2. 按质量门禁（见基础数据）依次执行：
    - 测试命令（`AGENTS.md` 中定义）
    - 编译检查（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
    - Lint 检查（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
    - 测试覆盖率（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
-2. 测试报告写入 `{version}-reports/step6-test.md`，逐项记录检查结果和数值（如覆盖率百分比）
-3. 全部通过 → 勾选步骤6；任一项失败（测试报错 / 编译 error / Lint error / 覆盖率未达标）→ 先将问题添加到里程碑文档的 Bugs 表格：
+3. 测试报告写入 `{version}-reports/step6-test.md`，逐项记录检查结果和数值（如覆盖率百分比）
+4. 全部通过 → 勾选步骤6；任一项失败（测试报错 / 编译 error / Lint error / 覆盖率未达标）→ 先将问题添加到里程碑文档的 Bugs 表格：
      - 标题：问题简述
      - 优先级：🔴（测试失败）或 🟡（测试警告）
      - 来源：步骤6测试
@@ -361,6 +362,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 1. 检查：commit 粒度（一子功能点一 commit）、commit message 格式、产品文档未被污染
 2. 更新项目文件中的版本号（见版本管理）
+   - Rust 项目：更新 `Cargo.toml` 后必须运行 `cargo update -w` 同步 `Cargo.lock`
 3. 更新 `CHANGELOG.md`，在 `## [Unreleased]` 下方插入新版本条目，格式遵循 [Keep a Changelog](https://keepachangelog.com/)：
    - 标题行：`## [{version}] - YYYY-MM-DD`
    - 只使用有变更的分类：Added（新功能）、Changed（已有功能变更）、Fixed（bug 修复）、Removed（已移除功能）
@@ -388,7 +390,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 | 项目类型 | 检测文件 | 更新命令 |
 |----------|----------|----------|
 | JavaScript/TypeScript | `package.json` | 使用包管理器更新版本（如 `npm version`、`bun version` 或手动修改） |
-| Rust | `Cargo.toml` | 手动修改，或使用 `cargo-release` |
+| Rust | `Cargo.toml` | 手动修改后运行 `cargo update -w` 同步 Cargo.lock |
 | Python | `pyproject.toml` / `setup.cfg` | 手动修改 |
 | Go | `go.mod` | 手动修改（`go mod edit -version=vX.Y.Z`） |
 
