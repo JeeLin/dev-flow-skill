@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - 步骤2/5/6/7 支持添加发现的问题到 Bugs 表格
   - 步骤3完成条件包含 Bugs 表格检查
 
-- **Bug 收集入口**：独立 `dev-bug` 技能，通过 `/issue` 命令随时提交 bug，自动判断优先级并写入当前里程碑的 Bugs 表格
+- **Bug 收集入口**：独立 `dev-bug` 技能，通过 `/dev-bug` 命令随时提交 bug，自动判断优先级并写入当前里程碑的 Bugs 表格
 
 ### Changed
 

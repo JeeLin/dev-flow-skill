@@ -1,6 +1,6 @@
 ---
 name: dev-bug
-description: 记录 bug 到当前里程碑的 Bugs 表格。用法：/issue <描述>
+description: 记录 bug 到当前里程碑的 Bugs 表格。用法：/dev-bug <描述>
 ---
 
 # dev-bug：记录 Bug
