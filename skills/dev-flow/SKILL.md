@@ -330,7 +330,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 **触发条件**：步骤5已完成，Flow Status 步骤6 未勾选
 
-1. **前置检查**：Rust 项目先运行 `cargo generate-lockfile --dry-run`，验证 `Cargo.lock` 与 `Cargo.toml` 一致，不一致则提示修复后再进入测试
+1. **前置检查**：Rust 项目先运行 `cargo check --locked`，验证 `Cargo.lock` 与 `Cargo.toml` 一致，不一致则提示修复后再进入测试
 2. 按质量门禁（见基础数据）依次执行：
    - 测试命令（`AGENTS.md` 中定义）
    - 编译检查（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
