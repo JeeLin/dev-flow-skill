@@ -296,7 +296,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 **触发条件**：步骤3已完成，Flow Status 步骤4 未勾选
 
-1. 读取最近修改的文件（git diff / git log）
+1. 读取里程碑期间修改的文件（`git diff --name-only HEAD~N`，N 为步骤3 期间的 commit 数量；或 `git diff --name-only {milestone-start-ref}` 对比里程碑开始前的 ref）
 2. 按 `AGENTS.md` 中约定的维度检查并修复
 3. 精简报告写入 `{version}-reports/step4-simplify.md`
 4. 勾选步骤4
@@ -312,7 +312,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 1. 调用 `devflow-review` 技能，参数：
    - `type`: `code`
    - `dimensions`: 从 `AGENTS.md` 读取的审查维度列表（或默认的代码审查维度）
-   - `objects`: 变更文件列表（通过 `git diff --name-only` 获取）
+   - `objects`: 变更文件列表（通过 `git diff --name-only {milestone-start-ref}` 获取，对比里程碑开始前的 ref）
    - `report_path`: `{version}-reports/step5-code-review.md`
 2. 根据技能返回的结论（是否包含 🔴）决定后续：
    - 无 🔴 → 勾选步骤5
@@ -330,8 +330,8 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 **触发条件**：步骤5已完成，Flow Status 步骤6 未勾选
 
-1. **前置检查**：Rust 项目先运行 `cargo check --locked`，验证 `Cargo.lock` 与 `Cargo.toml` 一致，不一致则提示修复后再进入测试
-2. 按质量门禁（见基础数据）依次执行：
+1. **前置检查**：Rust 项目先运行 `cargo check --locked`，验证 `Cargo.lock` 与 `Cargo.toml` 一致，不一致则提示修复后再进入测试；通过后跳过质量门禁中的编译检查（已验证）
+2. 按质量门禁（见基础数据）依次执行（Rust 项目跳过编译检查）：
    - 测试命令（`AGENTS.md` 中定义）
    - 编译检查（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
    - Lint 检查（默认按项目类型自动选择，`AGENTS.md` 可覆盖）
