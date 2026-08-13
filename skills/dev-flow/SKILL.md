@@ -19,7 +19,7 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 
 关键原则：所有状态写入里程碑文档，不依赖对话记忆。无论上下文如何变化，重新调用技能都能从文档中恢复。
 
-**提交原则**：每次 git commit 必须同时包含代码变更和里程碑文档的状态变更（子任务状态、Bugs 表格、Flow Status 勾选等）。不允许只提交代码而不更新里程碑文档，确保里程碑文档始终是代码的真实状态。
+**提交原则**：每次提交代码都必须同步更新里程碑文档的对应状态（子任务状态、Bugs 表格、Flow Status 勾选等），不允许只提交代码而不更新里程碑文档，确保里程碑文档始终是代码的真实状态。里程碑文档本身的独立提交（如步骤1 新建、步骤8 收尾）允许只含文档，不要求同时携带代码变更。
 
 ## 基础数据
 
@@ -41,12 +41,16 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 | 检查项 | JS/TS 项目 | Python 项目 | Rust 项目 | Go 项目 | AGENTS.md 可覆盖字段 |
 |--------|-----------|------------|----------|---------|----------------------|
 | 编译检查 | `bunx tsc --noEmit` | `mypy .` | `cargo check` | `go build ./...` | `编译命令` |
-| Lint 检查 | `bun run lint` 无 error（warning 可忽略） | `ruff check .` 无 error（warning 可忽略） | `cargo clippy -- -D warnings` | `golangci-lint run` | `Lint 命令`、`Lint 规则` |
-| 测试覆盖率 | `bun test --coverage` 达到 90% | `pytest --cov=. --cov-report=term-missing` 达到 90% | `cargo llvm-cov` 达到 90% | `go test -coverprofile` 达到 90% | `覆盖率命令`、`最低覆盖率` |
+| Lint 检查 | `npm run lint` 无 error（warning 可忽略） | `ruff check .` 无 error（warning 可忽略） | `cargo clippy -- -D warnings` | `golangci-lint run` | `Lint 命令`、`Lint 规则` |
+| 测试覆盖率 | `npm test -- --coverage` 达到 90% | `pytest --cov=. --cov-report=term-missing` 达到 90% | `cargo llvm-cov` 达到 90% | `go test -coverprofile` 达到 90% | `覆盖率命令`、`最低覆盖率` |
+
+JS/TS 默认命令采用 `npx`/`npm`，与本仓库 `AGENTS.md` 的 `npm test` 约定一致；若项目使用 `bun`/`yarn`/`pnpm`，在 `AGENTS.md` 的 `## 质量门禁` 中覆盖即可。
 
 其他语言在 `AGENTS.md` 中自定义。如果项目不需要某项检查（如无类型系统），将对应命令设为空即可跳过。
 
 **里程碑规划**：如果 DEVELOPMENT.md 为空或未定义下一个里程碑，调用 `milestone-planner` 技能进行规划，规划结果经用户确认后再继续步骤1。
+
+**里程碑起始 ref（{milestone-start-ref}）**：步骤1 创建里程碑文档时打上的轻量 tag `milestone-{version}-start`，用于步骤4/5 对比里程碑开始前的代码状态（`git diff --name-only {milestone-start-ref}`）。该 ref 由步骤1 生成，全流程唯一来源，不依赖 `HEAD~N` 计数。
 
 ## 状态机
 
@@ -58,11 +62,8 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 IF 没有里程碑文档，或全部已完成
   → 步骤1：创建新里程碑（如需规划，先调用 milestone-planner）
 
-ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文档）
+ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序取最大：语义版本按 vX.Y.Z 数值比较，序号风格按 M 后数字比较）
   读取其 ## Flow Status：
-
-  IF 步骤1 已勾选，但步骤2 未勾选，且里程碑文档打回记录表格有非空行
-    → 取消步骤1及后续勾选，进入步骤1：根据打回记录重新编写
 
   IF 步骤1 未勾选
     → 步骤1：编写里程碑文档
@@ -72,6 +73,9 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
   IF 步骤3 未勾选
     → 步骤3：开发（先完成子任务，再处理 bug）
+
+  IF 步骤3 已勾选 且 Bugs 表格存在未修复 bug（状态为 ⬜ 的 🔴/🟡/🟢 行）
+    → 回到步骤3：取消步骤3/4/5/6/7 的 Flow Status 勾选，将步骤4/5/6/7 的报告文件重命名为 `.rejected`，进入开发阶段按优先级修复全部未修复 bug，完成后依次重新执行步骤4→5→6→7
 
   IF 步骤4 未勾选
     → 步骤4：代码精简
@@ -96,7 +100,14 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 ### 位置
 
-默认 `docs/milestones/{version}-{name}.md`（如 `v1.0.0-基础架构.md`），项目 `AGENTS.md` 可覆盖。
+默认 `docs/milestones/{version}-{name}.md`，项目 `AGENTS.md` 可覆盖。
+
+里程碑标识 `{version}` 支持两种风格：
+
+- **语义版本风格**：`v{major}.{minor}.{patch}`（如 `v1.0.0-基础架构.md`），dev-flow 默认，便于自动递增
+- **序号风格**：`M{数字}`（如 `M30-sftp-mobile-adaptation.md`），按里程碑序号递增，常见于按迭代编号的项目
+
+两种风格的里程碑文档均放在 `docs/milestones/` 下，报告目录对应为 `{version}-reports/`（如 `v0.1.0-reports/`、`M30-reports/`）。
 
 ### 模板
 
@@ -159,6 +170,8 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 | 状态 | 优先级 | 标题 | 来源 | 描述 |
 |------|--------|------|------|------|
+
+状态列取值：⬜ = 待修复（dev-bug 写入或步骤5/6/7 打回时填入，状态机据此识别未修复 bug）；[x] = 已修复（步骤3 处理完后勾选）。优先级取值：🔴 必须修复 / 🟡 应该修复 / 🟢 可选改进。
 ```
 
 子任务编号规则：主编号用数字（1, 2, 3），需要拆分时用字母子编号（1a, 1b）。子任务清单和详细设计中的编号必须一一对应。
@@ -200,21 +213,21 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 | 2 | 报告结论为 ✅ | 小问题：Claude 直接修改文档重新核对；大问题：打回到步骤1 |
 | 3 | 所有子任务标记为 ✅ 且 Bugs 表格中无未勾选的 🔴/🟡/🟢 | 继续开发 |
 | 4 | 精简不改变功能行为 | 回退改动 |
-| 5 | 审查报告无 🔴 | 取消步骤5勾选，用户修复后重入步骤5 |
-| 6 | 测试通过 + 编译无 error + Lint 无 error + 覆盖率达标 | 取消步骤6勾选，用户修复后重入步骤6 |
-| 7 | 确认报告结论为 ✅ | 取消步骤7勾选，用户修复后重入步骤7 |
+| 5 | 审查报告无 🔴 | 将问题写入 Bugs 表格，取消步骤3/4/5/6/7勾选，回到步骤3修复后重跑4→5→6→7 |
+| 6 | 测试通过 + 编译无 error + Lint 无 error + 覆盖率达标 | 将问题写入 Bugs 表格，取消步骤3/4/5/6/7勾选，回到步骤3修复后重跑4→5→6→7 |
+| 7 | 确认报告结论为 ✅ | 将问题写入 Bugs 表格，取消步骤3/4/5/6/7勾选，回到步骤3修复后重跑4→5→6→7 |
 | 8 | 所有检查通过 | 修复后重新检查 |
 
 打回动作（步骤2）：
 - 小问题（措辞、细节缺失）：Claude 直接修改里程碑文档，保持步骤1勾选，重新执行步骤2
-- 大问题（设计方向错误、产品边界不合理、子任务拆分粒度不当）：取消步骤1及后续勾选，在里程碑文档的"打回记录"表格中追加一行，重新进入步骤1
+- 大问题（设计方向错误、产品边界不合理、子任务拆分粒度不当）：取消步骤1及后续勾选，将步骤2 的报告文件重命名加 `.rejected` 后缀（如 `step2-design-review.md` → `step2-design-review.md.rejected`），在里程碑文档的"打回记录"表格中追加一行，重新进入步骤1
 
-打回动作（步骤5/6/7）：
-1. 取消失败步骤及后续步骤的 Flow Status 勾选
-2. 在里程碑文档的"打回记录"表格中追加一行
-3. 执行文件操作：将失败步骤的报告文件重命名，原文件名加 `.rejected` 后缀（如 `step5-code-review.md` → `step5-code-review.md.rejected`），避免状态机重新匹配到旧报告
-4. 将详细发现摘要记录到打回记录中
-5. 提示用户需要修复的内容
+打回动作（步骤5/6/7）：失败不再只重入本步，而是回到步骤3 修复后重跑 4→5→6→7。
+1. 将问题写入里程碑文档的 Bugs 表格（标题、优先级、来源=失败步骤、描述），作为待修复 bug
+2. 取消步骤3/4/5/6/7 的 Flow Status 勾选（步骤1/2 保持勾选），使状态机回到步骤3
+3. 在里程碑文档的"打回记录"表格中追加一行（含失败步骤与原因摘要）
+4. 执行文件操作：将步骤4/5/6/7 的报告文件重命名，原文件名加 `.rejected` 后缀（如 `step5-code-review.md` → `step5-code-review.md.rejected`），避免状态机重新匹配到旧报告
+5. 提示用户：bug 已登记，将回到步骤3 开发阶段修复，完成后自动重跑步骤4→5→6→7
 
 ---
 
@@ -226,16 +239,21 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 1. 检查 DEVELOPMENT.md 是否定义了下一个里程碑
    - 如果未定义或 DEVELOPMENT.md 为空：调用 `milestone-planner` 技能进行规划，等用户确认后再继续
-2. 从 DEVELOPMENT.md 读取下一个里程碑的核心功能、子任务预估、依赖关系、版本类型
+2. 从 DEVELOPMENT.md 读取下一个里程碑的核心功能、子任务预估、依赖关系、版本类型。下一个里程碑 = DEVELOPMENT.md 中标记 `← 新增（下一步）`（或 `🔄 当前`）的条目（由 milestone-planner 写入，约定见 milestone-planner 技能的图例）。两标记等价，均表示"待做/进行中的里程碑"。
 3. 读取产品文档、开发文档、原型代码
-4. 读取已完成的里程碑文档（如有），确定当前版本号
-5. 确定新里程碑版本号：根据里程碑内容自动判断递增类型（如 v0.9.0 → v0.9.1 或 v0.10.0 或 v1.0.0）
-   - **patch**：bug 修复、纯修复、重构、文档更新，无新功能
-   - **minor**：新增功能，向后兼容（里程碑默认递增方式，如 v0.9.0 → v0.10.0）
-   - **major**：破坏性变更（如 v0.x.x → v1.0.0）
+4. 读取已完成的里程碑文档（如有），确定当前版本号与标识风格（语义版本或序号风格）。版本号以里程碑文档为准，不依赖项目文件中的版本字段
+5. 确定新里程碑版本号：根据里程碑内容自动判断递增类型。版本号标识风格沿用当前项目已有里程碑的风格（语义版本风格取完整三段号的最大者，序号风格取 M 后数字的最大者）：
+   - **语义版本风格**（如 `v0.9.0`）：按内容判断 patch/minor/major 递增（如 `v0.9.0 → v0.9.1` 或 `v0.10.0` 或 `v1.0.0`）
+     - **patch**：bug 修复、纯修复、重构、文档更新，无新功能
+     - **minor**：新增功能，向后兼容（里程碑默认递增方式，如 `v0.9.0 → v0.10.0`）
+     - **major**：破坏性变更（如 `v0.x.x → v1.0.0`）
+   - **序号风格**（如 `M30`）：序号 +1 递增（如 `M30 → M31`），递增类型由里程碑内容语义决定（patch=纯修复/重构，minor=新功能，major=破坏性变更），仅影响版本类型标注，不改变编号方式
 6. 按模板创建里程碑文档，子任务拆分到 1-2 个 commit 的粒度
 7. 提交里程碑文档：`git add {milestone-path} && git commit -m "docs: create milestone {version}"`
-8. 勾选步骤1
+8. **记录里程碑起始 ref**：在刚创建的提交上打轻量 tag，作为后续 diff 的基准：
+   - `git tag milestone-{version}-start`，其中 `{version}` 与里程碑文件名一致（如 `milestone-v0.1.0-start`）
+   - 该 tag 即状态机与步骤4/5 中 `{milestone-start-ref}` 的取值来源，全程不再依赖 `HEAD~N` 计数的脆弱方式
+9. 勾选步骤1
 
 **门禁**：文档包含完整模板字段（Context、产品边界、子任务清单与详细设计、设计核对点、Flow Status、打回记录）
 
@@ -288,7 +306,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 **触发条件**：步骤3已完成，Flow Status 步骤4 未勾选
 
-1. 读取里程碑期间修改的文件（`git diff --name-only HEAD~N`，N 为步骤3 期间的 commit 数量；或 `git diff --name-only {milestone-start-ref}` 对比里程碑开始前的 ref）
+1. 读取里程碑期间修改的文件（`git diff --name-only {milestone-start-ref}`，即步骤1 打上的 `milestone-{version}-start` tag，对比里程碑开始前的代码状态）
 2. 按 `AGENTS.md` 中约定的维度检查并修复
 3. 精简报告写入 `{version}-reports/step4-simplify.md`
 4. 勾选步骤4
@@ -303,8 +321,8 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 
 1. 调用 `devflow-review` 技能，参数：
    - `type`: `code`
-   - `dimensions`: 从 `AGENTS.md` 读取的审查维度列表（或默认的代码审查维度）
-   - `objects`: 变更文件列表（通过 `git diff --name-only {milestone-start-ref}` 获取，对比里程碑开始前的 ref）
+   - `dimensions`: 优先读取 `AGENTS.md` 的 `## 代码审查维度`；若该段缺失则不传此参数，由 devflow-review 回退到内置默认代码审查维度集（见 devflow-review 技能 §0）。**注意**：不要传入设计审查维度（`## 审查维度`），代码审查与设计审查维度不同
+   - `objects`: 变更文件列表（通过 `git diff --name-only {milestone-start-ref}` 获取，即步骤1 打上的 `milestone-{version}-start` tag，对比里程碑开始前的代码状态）
    - `report_path`: `{version}-reports/step5-code-review.md`
 2. 根据技能返回的结论（是否包含 🔴）决定后续：
    - 无 🔴 → 勾选步骤5
@@ -314,7 +332,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
      - 来源：步骤5代码审查
      - 描述：详细问题描述
      
-     然后取消步骤5勾选，用户修复后重入步骤5
+     然后按打回动作（步骤5/6/7）处理：取消步骤3/4/5/6/7 勾选并回到步骤3 修复，修复后依次重跑步骤4→5→6→7（不再仅重入步骤5）
 
 **门禁**：审查报告无 🔴 必须修复项
 
@@ -335,7 +353,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
      - 来源：步骤6测试
      - 描述：详细问题描述
      
-     然后取消步骤6勾选，提示用户具体失败项，用户修复后重入步骤6
+     然后按打回动作（步骤5/6/7）处理：取消步骤3/4/5/6/7 勾选并回到步骤3 修复，修复后依次重跑步骤4→5→6→7（不再仅重入步骤6）
 
 **门禁**：测试全部通过 + 编译无 error + Lint 无 error + 覆盖率达到阈值
 
@@ -356,7 +374,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
      - 来源：步骤7设计再确认
      - 描述：详细问题描述
      
-     然后取消步骤7勾选，用户修复后重入步骤7
+     然后按打回动作（步骤5/6/7）处理：取消步骤3/4/5/6/7 勾选并回到步骤3 修复，修复后依次重跑步骤4→5→6→7（不再仅重入步骤7）
 
 **门禁**：确认报告结论为 ✅
 
@@ -367,7 +385,9 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 1. 检查：commit 粒度（一子功能点一 commit）、commit message 格式、产品文档未被污染
 2. 更新项目文件中的版本号（见版本管理）
    - Rust 项目：更新 `Cargo.toml` 后必须运行 `cargo update -w` 同步 `Cargo.lock`
-3. 更新 `CHANGELOG.md`，在 `## [Unreleased]` 下方插入新版本条目，格式遵循 [Keep a Changelog](https://keepachangelog.com/)：
+3. 更新 `CHANGELOG.md`：
+   - 若 `CHANGELOG.md` 不存在或缺少 `## [Unreleased]` 标题，先创建/补齐基础结构（含 `## [Unreleased]` 行及 Keep a Changelog 头部），再继续
+   - 在 `## [Unreleased]` 下方插入新版本条目，格式遵循 [Keep a Changelog](https://keepachangelog.com/)：
    - 标题行：`## [{version}] - YYYY-MM-DD`
    - 只使用有变更的分类：Added（新功能）、Changed（已有功能变更）、Fixed（bug 修复）、Removed（已移除功能）
    - 每条以 `- ` 开头，简明描述变更内容
@@ -382,8 +402,12 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
      ### Fixed
      - 登录页面：修复表单提交后未重置状态的问题
      ```
-4. 勾选步骤8
-5. 提交里程碑文档、开发文档、报告文件、版本文件和 CHANGELOG 到 git：`git add docs/milestones/ docs/DEVELOPMENT.md CHANGELOG.md {version-file} && git commit -m "docs: milestone {version} completed"`（`{version-file}` 为步骤8.2更新的版本文件，如 `package.json`、`Cargo.toml`、`go.mod` 等；`docs/milestones/` 包含里程碑文档及其报告文件）
+4. 更新 `DEVELOPMENT.md` 的里程碑状态标记（与 milestone-planner 图例一致，标记含空格 `← 新增（下一步）`）：
+   - 将本里程碑条目标记从 `← 新增（下一步）` / `🔄 当前` 改为 `✅ 已完成`
+   - 将 DEVELOPMENT.md 中下一个待做里程碑（若有）的标记前移为 `← 新增（下一步）`，使下次 dev-flow 步骤1 能正确识别"下一个里程碑"
+   - 此步骤避免 milestone-planner 再次运行时因找不到已完成的 `← 新增` 标记而重复追加 `## 里程碑划分` 段落
+5. 勾选步骤8
+6. 提交里程碑文档、开发文档、报告文件、版本文件和 CHANGELOG 到 git：`git add docs/milestones/ docs/DEVELOPMENT.md CHANGELOG.md {version-file} && git commit -m "docs: milestone {version} completed"`（`{version-file}` 为步骤8.2更新的版本文件，如 `package.json`、`Cargo.toml`、`go.mod` 等；`docs/milestones/` 包含里程碑文档及其报告文件）
 
 **门禁**：所有检查通过
 
@@ -398,4 +422,4 @@ ELSE 找到当前里程碑（docs/milestones/ 中版本号最大的未完成文�
 | Python | `pyproject.toml` / `setup.cfg` | 手动修改 |
 | Go | `go.mod` | 手动修改（`go mod edit -version=vX.Y.Z`） |
 
-步骤1 确定版本号规则：读取项目文件中的当前版本号，根据里程碑内容自动判断递增类型（patch/minor/major）。
+步骤1 确定版本号规则：以里程碑文档（而非项目文件）中已有的最大版本号为准，确定标识风格并递增；递增类型（patch/minor/major）依里程碑内容自动判断。
