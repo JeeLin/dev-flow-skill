@@ -321,7 +321,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 
 1. 调用 `devflow-review` 技能，参数：
    - `type`: `code`
-   - `dimensions`: 优先读取 `AGENTS.md` 的 `## 代码审查维度`；若该段缺失则不传此参数，由 devflow-review 回退到内置默认代码审查维度集（见 devflow-review 技能 §0）。**注意**：不要传入设计审查维度（`## 审查维度`），代码审查与设计审查维度不同
+   - `dimensions`: **只在 `AGENTS.md` 存在 `## 代码审查维度` 段落时才传此参数**，值取该段内容；若 `AGENTS.md` **没有** `## 代码审查维度` 段落，则**不要传 `dimensions` 参数**，让 devflow-review 自动使用其内置默认代码审查维度集（见 devflow-review 技能 §0）。无论何种情况都**严禁**把 `## 审查维度`（设计审查维度）当作代码审查维度传入——设计审查与代码审查是两套不同的维度
    - `objects`: 变更文件列表（通过 `git diff --name-only {milestone-start-ref}` 获取，即步骤1 打上的 `milestone-{version}-start` tag，对比里程碑开始前的代码状态）
    - `report_path`: `{version}-reports/step5-code-review.md`
 2. 根据技能返回的结论（是否包含 🔴）决定后续：
