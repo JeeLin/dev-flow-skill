@@ -9,12 +9,12 @@
 git clone git@github.com:JeeLin/dev-flow-skill.git ~/dev-flow-skill
 
 # 创建 skill 目录并 symlink
-mkdir -p ~/.claude/skills
-ln -s ~/dev-flow-skill/skills/dev-flow ~/.claude/skills/dev-flow
-ln -s ~/dev-flow-skill/skills/dev-acceptance ~/.claude/skills/dev-acceptance
-ln -s ~/dev-flow-skill/skills/devflow-review ~/.claude/skills/devflow-review
-ln -s ~/dev-flow-skill/skills/dev-bug ~/.claude/skills/dev-bug
-ln -s ~/dev-flow-skill/skills/milestone-planner ~/.claude/skills/milestone-planner
+mkdir -p ~/.dsh/skill
+ln -s ~/dev-flow-skill/skills/dev-flow ~/.dsh/skill/dev-flow
+ln -s ~/dev-flow-skill/skills/dev-acceptance ~/.dsh/skill/dev-acceptance
+ln -s ~/dev-flow-skill/skills/devflow-review ~/.dsh/skill/devflow-review
+ln -s ~/dev-flow-skill/skills/dev-bug ~/.dsh/skill/dev-bug
+ln -s ~/dev-flow-skill/skills/milestone-planner ~/.dsh/skill/milestone-planner
 ```
 
 ## 使用
