@@ -8,8 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
-- **devflow-review 技能**：新增独立的审查框架技能，覆盖设计审查（步骤2/7）和代码审查（步骤5）
-  - 报告模板：`step2-design-review.md`、`step5-code-review.md`、`step7-design-reconfirm.md`
+- **dev-acceptance 技能**：独立的功能验收（独立审查）技能，供 dev-flow 步骤7调用
+  - 从 git diff 出发作为唯一入口，逐子任务和逐 bug 验证
+  - 四条硬规则：git diff 驱动、不信任 ✅/[x] 标记、不引用步骤3提交信息、逐项验证不概括
+  - 报告模板：`step7-acceptance.md`
+  - 通过标准：所有子任务和已修复 bug 均 ✅ 且无遗漏
+
+- **devflow-review 技能**：新增独立的审查框架技能，覆盖设计审查（步骤2）和代码审查（步骤5）
+  - 报告模板：`step2-design-review.md`、`step5-code-review.md`
   - 审查维度：从 `AGENTS.md` 的 `## 审查维度` 读取
   - 通过条件：所有维度 ✅ 且无 🔴 必须修复项
 
@@ -23,10 +29,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
-- **dev-flow 技能更新**：步骤2、5、7 改为调用 `devflow-review` 技能
+- **dev-flow 技能更新**：步骤2、5 调用 `devflow-review` 技能，步骤7 调用 `dev-acceptance` 技能
   - 步骤2：设计审查，传入里程碑文档和产品文档
   - 步骤5：代码审查，传入 git diff 文件列表
-  - 步骤7：设计再确认，传入已实现代码和里程碑文档
+  - 步骤7：功能验收（独立审查），从 git diff 出发逐项验证子任务/bug 是否真正满足需求，不信任流程标记
 - **步骤3 原则更新**：明确代码提交时机 - 实现每个子任务后立即提交，修复每个 bug 后立即提交
 ### Removed
 

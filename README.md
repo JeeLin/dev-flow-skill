@@ -11,6 +11,9 @@ git clone git@github.com:JeeLin/dev-flow-skill.git ~/dev-flow-skill
 # 创建 skill 目录并 symlink
 mkdir -p ~/.claude/skills
 ln -s ~/dev-flow-skill/skills/dev-flow ~/.claude/skills/dev-flow
+ln -s ~/dev-flow-skill/skills/dev-acceptance ~/.claude/skills/dev-acceptance
+ln -s ~/dev-flow-skill/skills/devflow-review ~/.claude/skills/devflow-review
+ln -s ~/dev-flow-skill/skills/dev-bug ~/.claude/skills/dev-bug
 ln -s ~/dev-flow-skill/skills/milestone-planner ~/.claude/skills/milestone-planner
 ```
 
@@ -34,7 +37,7 @@ Skill 会自动检测当前项目状态，从上次完成的步骤继续。
 | 4 | 代码精简 | 消除重复、过度设计 |
 | 5 | 代码审查 | 多维度审查，发现问题打回 |
 | 6 | 测试验证 | 运行测试命令，检查覆盖率 |
-| 7 | 设计再确认 | 确认实现与设计一致 |
+| 7 | 功能验收 | 从 git diff 出发独立验证实现是否满足需求 |
 | 8 | 提交 | 最终检查，完成里程碑 |
 
 ## 项目要求
