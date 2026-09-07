@@ -21,7 +21,6 @@ description: 里程碑开发流程编排。自动检测项目状态，串行驱�
 
 **提交原则**：每次提交代码都必须同步更新里程碑文档的对应状态（子任务状态、Bugs 表格、Flow Status 勾选等），不允许只提交代码而不更新里程碑文档，确保里程碑文档始终是代码的真实状态。里程碑文档本身的独立提交（如步骤1 新建、步骤8 收尾）允许只含文档，不要求同时携带代码变更。
 
-**Gitignore 处理**：若里程碑文档目录（如 `.dev-flow/milestones/`）在 `.gitignore` 中，步骤1/8 跳过文档提交，只提交代码变更和版本文件。里程碑状态仅保存在本地文件中，不进入 git 历史。
 ## 基础数据
 
 每次执行流程前，必须读取：
@@ -272,11 +271,10 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
      - **major**：破坏性变更（如 `v0.x.x → v1.0.0`）
    - **序号风格**（如 `M30`）：序号 +1 递增（如 `M30 → M31`），递增类型由里程碑内容语义决定（patch=纯修复/重构，minor=新功能，major=破坏性变更），仅影响版本类型标注，不改变编号方式
 6. 按模板创建里程碑文档，子任务拆分到 1-2 个 commit 的粒度
-7. 提交里程碑文档（**仅当里程碑路径未被 gitignore 时**）：
-   - 检查：`git check-ignore -q {milestone-path}`，返回 0 表示被忽略
-   - 若未被忽略：`git add {milestone-path} && git commit -m "docs: create milestone {version}"`
-   - 若已被忽略：跳过文档提交，直接进入下一步
-8. **记录里程碑起始 ref**：在当前 HEAD 上打轻量 tag（无论文档是否提交），作为后续 diff 的基准：
+7. 提交里程碑文档：`git add {milestone-path} && git commit -m "docs: create milestone {version}"`
+8. **记录里程碑起始 ref**：在刚创建的提交上打轻量 tag，作为后续 diff 的基准：
+   - `git tag milestone-{version}-start`，其中 `{version}` 与里程碑文件名一致（如 `milestone-v0.1.0-start`）
+   - 该 tag 即状态机与步骤4/5 中 `{milestone-start-ref}` 的取值来源，全程不再依赖 `HEAD~N` 计数的脆弱方式
 9. 勾选步骤1
 
 **门禁**：文档包含完整模板字段（Context、产品边界、子任务清单与详细设计、设计核对点、Flow Status、打回记录）
@@ -452,19 +450,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
    - 将 DEVELOPMENT.md 中下一个待做里程碑（若有）的标记前移为 `← 新增（下一步）`，使下次 dev-flow 步骤1 能正确识别"下一个里程碑"
    - 此步骤避免 milestone-planner 再次运行时因找不到已完成的 `← 新增` 标记而重复追加 `## 里程碑划分` 段落
 5. 勾选步骤8
-6. 提交变更到 git：
-   - **检测里程碑目录是否被 gitignore**：`git check-ignore -q {milestone-dir}`（`{milestone-dir}` 为里程碑文档所在目录，如 `.dev-flow/milestones/` 或 `docs/milestones/`）
-   - **若里程碑目录未被忽略**：提交所有相关文件
-     ```
-     git add {milestone-dir} docs/DEVELOPMENT.md CHANGELOG.md {version-file}
-     git commit -m "docs: milestone {version} completed"
-     ```
-   - **若里程碑目录已被忽略**：只提交非忽略文件（版本文件和 CHANGELOG）
-     ```
-     git add CHANGELOG.md {version-file}
-     git commit -m "chore: release {version}"
-     ```
-   - `{version-file}` 为步骤8.2更新的版本文件（如 `package.json`、`Cargo.toml`、`go.mod` 等）
+6. 提交里程碑文档、开发文档、报告文件、版本文件和 CHANGELOG 到 git：`git add docs/milestones/ docs/DEVELOPMENT.md CHANGELOG.md {version-file} && git commit -m "docs: milestone {version} completed"`（`{version-file}` 为步骤8.2更新的版本文件，如 `package.json`、`Cargo.toml`、`go.mod` 等；`docs/milestones/` 包含里程碑文档及其报告文件）
 
 **门禁**：所有检查通过
 
