@@ -63,8 +63,7 @@ JS/TS 默认命令采用 `npx`/`npm`，与本仓库 `AGENTS.md` 的 `npm test` �
 
 **缺陷池消费**：`docs/BUGS.md` 中的待处理 bug（🔴/🟡/🟢）由 `milestone-planner` 在规划下一个里程碑时统一纳入——全部转入该里程碑的修复范围（最终落到里程碑文档 `## Bugs` 表，⬜），并从缺陷池删除对应行，由 dev-flow 步骤3 按 🔴→🟡→🟢 处理完毕。dev-flow 步骤1 在无下一个里程碑时会自动调用 planner，故缺陷池在每个新版本开始即被清空、不遗漏任何遗留 bug。
 
-**里程碑起始 ref（{milestone-start-ref}）**：步骤1 创建里程碑文档时打上的轻量 tag `milestone-{version}-start`，用于步骤4/5 对比里程碑开始前的代码状态（`git diff --name-only {milestone-start-ref}`）。该 ref 由步骤1 生成，全流程唯一来源，不依赖 `HEAD~N` 计数。
-
+**里程碑起始 ref（{milestone-start-ref}）**：步骤1 创建里程碑文档时，将当前 commit hash 写入文档的 `## Context` 或专门字段，用于步骤4/5 对比里程碑开始前的代码状态（`git diff --name-only {milestone-start-ref}`）。该 ref 由步骤1 生成，全流程唯一来源，不依赖 `HEAD~N` 计数，也不依赖 git tag（里程碑文档可能在 gitignored 目录）。
 ## 状态机
 
 按顺序匹配，命中第一个即执行。每次调用执行一个步骤，执行完即停止。连续执行通过平台连续调用机制实现。
@@ -129,6 +128,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 ## Context
 前序阶段完成了什么，本阶段在整体产品中的位置。
 版本类型：patch（bug 修复/重构）/ minor（新功能，里程碑默认）/ major（破坏性变更），由步骤1根据里程碑内容自动判断
+里程碑起始 ref: {commit-hash}（步骤1 填入，用于步骤4/5/7 的 git diff 基准）
 
 ## 产品边界
 本阶段做什么、不做什么。
@@ -277,9 +277,11 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
    - 检查：`git check-ignore -q {milestone-path}`
    - 若未被忽略：`git add {milestone-path} && git commit -m "docs: create milestone {version}"`
    - 若已被忽略：跳过提交，直接下一步
-8. **记录里程碑起始 ref**：在当前 HEAD 上打轻量 tag，作为后续 diff 的基准：
-   - `git tag milestone-{version}-start`，其中 `{version}` 与里程碑文件名一致（如 `milestone-v0.1.0-start`）
-   - 该 tag 即状态机与步骤4/5 中 `{milestone-start-ref}` 的取值来源，全程不再依赖 `HEAD~N` 计数的脆弱方式
+8. **记录里程碑起始 ref**：将当前 commit hash 写入里程碑文档，作为后续 diff 的基准：
+   - `git rev-parse HEAD` 获取当前 commit hash
+   - 在里程碑文档的 `## Context` 段落写入：`里程碑起始 ref: {commit-hash}`
+   - 若步骤7跳过了文档提交，需重新读取文档写入（因为文件已变更但未提交）
+   - 该 hash 即状态机与步骤4/5/7 中 `{milestone-start-ref}` 的取值来源
 9. 勾选步骤1
 
 **门禁**：文档包含完整模板字段（Context、产品边界、子任务清单与详细设计、设计核对点、Flow Status、打回记录）
@@ -339,7 +341,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 
 **触发条件**：步骤3已完成，Flow Status 步骤4 未勾选
 
-1. 读取里程碑期间修改的文件（`git diff --name-only {milestone-start-ref}`，即步骤1 打上的 `milestone-{version}-start` tag，对比里程碑开始前的代码状态）
+1. 读取里程碑期间修改的文件（`git diff --name-only {milestone-start-ref}`，其中 `{milestone-start-ref}` 从里程碑文档的 `## Context` 中读取 commit hash，对比里程碑开始前的代码状态）
 2. 按 `AGENTS.md` 中约定的维度逐项检查，**只记录发现的问题，不在此步骤修复**（精简阶段只是排查，修复统一回开发阶段）
 3. 将发现的每一处问题分级登记，便于追溯，并按级别决定走向：
    - 🔴/🟡：登记到里程碑文档的 Bugs 表格（来源=步骤4代码精简），状态 ⬜ 待修复：
@@ -366,7 +368,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 1. 调用 `devflow-review` 技能，参数：
    - `type`: `code`
    - `dimensions`: **只在 `AGENTS.md` 存在 `## 代码审查维度` 段落时才传此参数**，值取该段内容；若 `AGENTS.md` **没有** `## 代码审查维度` 段落，则**不要传 `dimensions` 参数**，让 devflow-review 自动使用其内置默认代码审查维度集（见 devflow-review 技能 §0）。无论何种情况都**严禁**把 `## 审查维度`（设计审查维度）当作代码审查维度传入——设计审查与代码审查是两套不同的维度
-   - `objects`: 变更文件列表（通过 `git diff --name-only {milestone-start-ref}` 获取，即步骤1 打上的 `milestone-{version}-start` tag，对比里程碑开始前的代码状态）
+   - `objects`: 变更文件列表（通过 `git diff --name-only {milestone-start-ref}` 获取，其中 `{milestone-start-ref}` 从里程碑文档的 `## Context` 中读取 commit hash，对比里程碑开始前的代码状态）
    - `report_path`: `{version}-reports/step5-code-review.md`
 2. 根据技能返回的结论决定后续：
    - **分级登记所有发现**：将报告中的问题列表 **🔴🟡🟢 全部** 处理，确保无一遗漏：
@@ -411,7 +413,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 
 1. 调用 `dev-acceptance` 技能，参数：
    - `milestone_doc`: 里程碑文档路径
-   - `milestone_start_ref`: 步骤1 打上的 `milestone-{version}-start` tag
+   - `milestone_start_ref`: 从里程碑文档的 `## Context` 中读取的 commit hash
    - `agents_md`: `AGENTS.md` 路径（验收中参考项目约定）
    - `report_path`: `{version}-reports/step7-acceptance.md`
 2. 根据技能返回的结论（✅ 或 ❌）决定后续：
