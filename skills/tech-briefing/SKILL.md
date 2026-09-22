@@ -57,6 +57,7 @@ description: 每日科技早报生成器。自动抓取 Hacker News、GitHub Tre
 
 1. **{标题}**
    {≤30字中文摘要}
+   🔗 {url}
    💬 {N} 讨论 | 🔥 {N} 赞
 
 2. ...
@@ -67,6 +68,7 @@ description: 每日科技早报生成器。自动抓取 Hacker News、GitHub Tre
 
 1. **{owner/repo}** ⭐{Stars} ({语言})
    {≤30字中文简介}
+   🔗 {url}
 
 2. ...
 
@@ -76,6 +78,7 @@ description: 每日科技早报生成器。自动抓取 Hacker News、GitHub Tre
 
 1. **{标题}**
    {2-3句中文解读}
+   🔗 {url}
 
 2. ...
 
@@ -85,6 +88,7 @@ description: 每日科技早报生成器。自动抓取 Hacker News、GitHub Tre
 
 1. **{名称}** — {一句话定位}
    {亮点}
+   🔗 {url}
 
 ---
 
@@ -99,6 +103,7 @@ description: 每日科技早报生成器。自动抓取 Hacker News、GitHub Tre
 - **日期**：使用当天实际日期
 - **编号**：每个板块独立编号，从 1 开始
 - **加粗**：标题、仓库名、关键数字用 `**bold**`
+- **链接**：每条必须附带源链接 🔗 {url}，来自搜索结果的原始 URL
 - **语言**：中文为主，技术术语保留英文（如 Hacker News、GitHub、LLM、Rust）
 - **摘要长度**：每条 ≤30 字；AI 解读 ≤80 字
 - **今日要点**：3-5 条，每条一句话，用 `・` 开头
