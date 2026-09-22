@@ -73,8 +73,7 @@ JS/TS 默认命令采用 `npx`/`npm`，与本仓库 `AGENTS.md` 的 `npm test` �
 ```
 IF 没有里程碑文档，或全部已完成
   → 步骤1：创建新里程碑（如需规划，先调用 milestone-planner）
-
-ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序取最大：语义版本按 vX.Y.Z 数值比较，序号风格按 M 后数字比较）
+ELSE 找到当前里程碑（.dev-flow/milestones/ 中未完成文档按标识排序取最大：语义版本按 vX.Y.Z 数值比较，序号风格按 M 后数字比较）
   读取其 ## Flow Status：
 
   IF 步骤1 未勾选
@@ -111,14 +110,14 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 ## 里程碑文档
 
 ### 位置
-默认 `docs/milestones/{version}-{name}.md`，项目 `AGENTS.md` 可覆盖。
+默认 `.dev-flow/milestones/{version}-{name}.md`，项目 `AGENTS.md` 可覆盖。
 
 里程碑标识 `{version}` 支持两种风格：
 
 - **语义版本风格**：`v{major}.{minor}.{patch}`（如 `v1.0.0-基础架构.md`），dev-flow 默认，便于自动递增
 - **序号风格**：`M{数字}`（如 `M30-sftp-mobile-adaptation.md`），按里程碑序号递增，常见于按迭代编号的项目
 
-两种风格的里程碑文档均放在 `docs/milestones/` 下，报告目录对应为 `{version}-reports/`（如 `v0.1.0-reports/`、`M30-reports/`）。
+两种风格的里程碑文档均放在 `.dev-flow/milestones/` 下，报告目录对应为 `{version}-reports/`（如 `v0.1.0-reports/`、`M30-reports/`）。
 
 ### 模板
 
@@ -190,7 +189,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 
 ## 报告
 
-步骤2/4/5/6/7 的报告存放在 `docs/milestones/{version}-reports/` 目录下：
+步骤2/4/5/6/7 的报告存放在 `.dev-flow/milestones/{version}-reports/` 目录下：
 
 | 步骤 | 文件名 | 内容 |
 |------|--------|------|
@@ -200,7 +199,7 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 | 6 | `step6-test.md` | 测试命令运行结果和覆盖率 |
 | 7 | `step7-acceptance.md` | 功能验收：代码实现 vs 里程碑文档的独立验证结论 |
 
-步骤说明中的 `{version}-reports/` 路径均相对于 `docs/milestones/`。
+步骤说明中的 `{version}-reports/` 路径均相对于 `.dev-flow/milestones/`。
 
 步骤4/5/6/7 的门禁判断依据是对应报告文件中的结论。
 
@@ -292,7 +291,10 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 
 **触发条件**：步骤1已完成，Flow Status 步骤2 未勾选
 
-1. 调用 `devflow-review` 技能，参数：
+**⚠️ 强制要求：必须调用 `skill` 工具加载 `devflow-review` 技能，禁止自己生成报告！**
+
+1. **必须执行**：调用 `skill` 工具，参数 `name: "devflow-review"`
+2. 加载技能后，**必须严格按照技能指令执行审查**，参数：
    - `type`: `design`
    - `dimensions`: 从 `AGENTS.md` 读取的审查维度列表
    - `objects`: 里程碑文档路径 和 产品文档路径
@@ -341,18 +343,27 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 
 **触发条件**：步骤3已完成，Flow Status 步骤4 未勾选
 
-1. 读取里程碑期间修改的文件（`git diff --name-only {milestone-start-ref}`，其中 `{milestone-start-ref}` 从里程碑文档的 `## Context` 中读取 commit hash，对比里程碑开始前的代码状态）
-2. 按 `AGENTS.md` 中约定的维度逐项检查，**只记录发现的问题，不在此步骤修复**（精简阶段只是排查，修复统一回开发阶段）
-3. 将发现的每一处问题分级登记，便于追溯，并按级别决定走向：
+**⚠️ 强制要求：必须逐文件审查变更代码，禁止跳过或简化！**
+
+1. **必须执行**：读取里程碑期间修改的文件（`git diff --name-only {milestone-start-ref}`，其中 `{milestone-start-ref}` 从里程碑文档的 `## Context` 中读取 commit hash，对比里程碑开始前的代码状态）
+2. **必须逐文件审查**：对每个变更文件，**必须打开并阅读代码**，按 `AGENTS.md` 中约定的维度逐项检查：
+   - **禁止**只看文件名就判断"无问题"
+   - **禁止**跳过任何变更文件
+   - **必须**记录每个文件的审查结论（即使结论是"无问题"）
+3. **必须记录发现**：将发现的每一处问题分级登记，便于追溯，并按级别决定走向：
    - 🔴/🟡：登记到里程碑文档的 Bugs 表格（来源=步骤4代码精简），状态 ⬜ 待修复：
      - 标题：问题简述（如"提取重复逻辑""删除死代码""拆分过长函数"）
      - 优先级：🔴（精简引入的功能风险）/ 🟡（可维护性差：过长函数、重复代码）
      - 来源：步骤4代码精简
-     - 描述：发现位置
+     - 描述：发现位置（文件名:行号）
    - 🟢：同样登记到里程碑文档的 Bugs 表格（来源=步骤4代码精简），状态 ⬜ 待修复，与 🔴/🟡 处置一致，在本里程碑内修复，不推迟到下个版本。
 
    **原则：🔴/🟡/🟢 发现问题即打回开发阶段解决，不在精简/审查步骤就地修改。**
-4. 精简报告写入 `{version}-reports/step4-simplify.md`（记录每处发现与走向）
+4. **必须生成详细报告**：精简报告写入 `{version}-reports/step4-simplify.md`，必须包含：
+   - 变更文件列表（列出所有审查的文件）
+   - 每个文件的审查结论（无问题/发现问题）
+   - 发现的问题详情（如有）
+   - 总结结论
 5. 门禁判断：
    - 存在 🔴/🟡/🟢 任一发现 → 不勾选，按打回动作（步骤4/5/6/7）取消步骤3/4/5/6/7 勾选并回到步骤3 修复后重跑 4→5→6→7
    - 无任何发现 → 勾选步骤4
@@ -361,11 +372,19 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 
 **门禁**：精简无 🔴/🟡/🟢 发现，任一发现即打回开发阶段
 
+**禁止事项**：
+- ❌ 禁止只看文件名就判断"无问题"
+- ❌ 禁止跳过任何变更文件
+- ❌ 禁止生成少于10行的精简报告
+
 ### 步骤5：代码审查
 
 **触发条件**：步骤4已完成，Flow Status 步骤5 未勾选
 
-1. 调用 `devflow-review` 技能，参数：
+**⚠️ 强制要求：必须调用 `skill` 工具加载 `devflow-review` 技能，禁止自己生成报告！**
+
+1. **必须执行**：调用 `skill` 工具，参数 `name: "devflow-review"`
+2. 加载技能后，**必须严格按照技能指令执行审查**，参数：
    - `type`: `code`
    - `dimensions`: **只在 `AGENTS.md` 存在 `## 代码审查维度` 段落时才传此参数**，值取该段内容；若 `AGENTS.md` **没有** `## 代码审查维度` 段落，则**不要传 `dimensions` 参数**，让 devflow-review 自动使用其内置默认代码审查维度集（见 devflow-review 技能 §0）。无论何种情况都**严禁**把 `## 审查维度`（设计审查维度）当作代码审查维度传入——设计审查与代码审查是两套不同的维度
    - `objects`: 变更文件列表（通过 `git diff --name-only {milestone-start-ref}` 获取，其中 `{milestone-start-ref}` 从里程碑文档的 `## Context` 中读取 commit hash，对比里程碑开始前的代码状态）
@@ -411,12 +430,16 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
 
 **触发条件**：步骤6已完成，Flow Status 步骤7 未勾选
 
-1. 调用 `dev-acceptance` 技能，参数：
-   - `milestone_doc`: 里程碑文档路径
-   - `milestone_start_ref`: 从里程碑文档的 `## Context` 中读取的 commit hash
-   - `agents_md`: `AGENTS.md` 路径（验收中参考项目约定）
-   - `report_path`: `{version}-reports/step7-acceptance.md`
-2. 根据技能返回的结论（✅ 或 ❌）决定后续：
+**⚠️ 强制要求：必须调用 `skill` 工具加载 `dev-acceptance` 技能，禁止自己生成报告！**
+
+1. **必须执行**：调用 `skill` 工具，参数 `name: "dev-acceptance"`
+2. 加载技能后，**必须严格按照技能指令执行验收流程**：
+   - 从 `git diff {milestone-start-ref}` 获取变更文件列表
+   - 逐子任务验证，每个子任务给出独立结论
+   - 逐 bug 验证，每个 bug 给出独立结论
+   - 生成完整验收报告（包含验收原则、变更概览、子任务验收、Bug修复验收、未覆盖检查、汇总）
+3. 报告写入 `{version}-reports/step7-acceptance.md`
+4. 根据技能返回的结论（✅ 或 ❌）决定后续：
    - ✅ → 勾选步骤7
    - ❌ → 先将问题添加到里程碑文档的 Bugs 表格：
      - 标题：问题简述
@@ -427,6 +450,11 @@ ELSE 找到当前里程碑（docs/milestones/ 中未完成文档按标识排序�
      然后按打回动作（步骤4/5/6/7）处理：取消步骤3/4/5/6/7 勾选并回到步骤3 修复，修复后依次重跑步骤4→5→6→7（不再仅重入步骤7）
 
 **门禁**：验收报告结论为 ✅
+
+**禁止事项**：
+- ❌ 禁止跳过 `skill` 工具调用
+- ❌ 禁止自己编写简化版验收报告
+- ❌ 禁止只检查子任务状态列的 ✅ 就判断通过
 
 ### 步骤8：提交
 
