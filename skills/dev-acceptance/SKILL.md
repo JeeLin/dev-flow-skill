@@ -164,10 +164,10 @@ Bugs 表格中的 bug 描述是自然语言，验收时需要定位对应的代�
 
 ## 使用方式
 
-dev-flow 步骤7调用本技能时，需提供：
+dev-flow 步骤7调用本技能时，需要以下输入（由调用方传入，或按下述来源自行读取）：
 
 1. **里程碑文档路径**：包含子任务清单、详细设计、Bugs 表格
-2. **里程碑起始 ref**：步骤1 打上的 `milestone-{version}-start` tag
+2. **里程碑起始 ref** `{milestone-start-ref}`：从里程碑文档 `## Context` 中读取的 commit hash（步骤1 写入，全流程唯一基准；**不是** git tag——里程碑文档可能在 gitignored 目录）
 3. **agents_md 路径**：项目约定文件，验收中参考技术栈、代码规范等
 4. **报告路径**：`{version}-reports/step7-acceptance.md`
 
