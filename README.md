@@ -48,6 +48,6 @@ Skill 会自动检测当前项目状态，从上次完成的步骤继续。
 
 - `AGENTS.md` — 项目约定（技术栈、代码规范、目录结构）
 - `docs/PRODUCT.md` — 产品定位和功能边界
-- `docs/milestones/` — 里程碑文档目录
+- `.dev-flow/milestones/` — 里程碑文档目录（项目 `AGENTS.md` 可覆盖）
 
 这些是项目级文件，不属于本 skill 的一部分。

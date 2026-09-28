@@ -24,7 +24,7 @@ grep -rn "<旧关键词>" skills/ README.md CHANGELOG.md
 - 严重度 🔴🟡🟢 语义唯一定义在 dev-flow「严重度分级契约」，其他技能只引用不重定义。
 - `{milestone-start-ref}` = 里程碑文档 `## Context` 中的 commit hash，**不是 git tag**；变更列表必须 `git diff --name-only {milestone-start-ref}`，**禁止裸 git diff**（步骤3 已全部提交时结果为空 → 假通过）。
 - 状态机唯一状态源：Flow Status 勾选框 +「审查轮状态行」；报告文件只作证据。已废弃机制（`.rejected` 改名、逐审查打回）仅存在于历史 CHANGELOG 条目，属正常，勿回改。
-- 里程碑文档默认路径 `.dev-flow/milestones/`（README「项目要求」段的 `docs/milestones/` 已过时，以 SKILL.md 为准）。
+- 里程碑文档默认路径 `.dev-flow/milestones/`（项目 `AGENTS.md` 可覆盖），不要写成 `docs/milestones/`。
 
 ## CHANGELOG
 

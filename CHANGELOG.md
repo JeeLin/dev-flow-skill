@@ -54,6 +54,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **打回记录轮次计数**：步骤1 重写后不再清空打回记录，保证「打回记录行数 + 1」推算的轮次与审查轮状态行一致
 - **步骤编号**：修正步骤2/步骤5 中重复的「2.」编号
 - **步骤3 勾选**：步骤3 结束时明确勾选 Flow Status，避免状态机因勾选缺失重复进入步骤3
+- **README 里程碑路径**：「项目要求」段的 `docs/milestones/` 更正为默认路径 `.dev-flow/milestones/`，与 dev-flow / dev-bug 一致
 - **步骤7 登记顺序**：先登记 Bugs 后更新状态行（与步骤4/5/6 一致），中断时状态行保持 `—` 由断点恢复重跑，避免带着未登记的发现触发轮末打回
 - **步骤1 门禁**：显式要求模板包含审查轮状态行
 - **dev-acceptance 起始 ref**：「使用方式」中的 `milestone-{version}-start` tag 方案修正为里程碑文档 `## Context` 中的 commit hash（与步骤1 实现一致，原描述会导致调用方找不到 tag）
