@@ -173,11 +173,10 @@ ELSE 找到当前里程碑（.dev-flow/milestones/ 中未完成文档按标识�
 
 ## 打回记录
 
-（打回时追加一条，创建里程碑时留空）
+（打回时在表格追加一条数据行；创建里程碑时无数据行，轮次 = 打回记录行数 + 1，与状态行初始 `第1轮` 一致）
 
 | 时间 | 步骤 | 原因 |
 |------|------|------|
-| | | |
 
 ## Bugs
 
@@ -476,6 +475,7 @@ ELSE 找到当前里程碑（.dev-flow/milestones/ 中未完成文档按标识�
    - Rust 项目：更新 `Cargo.toml` 后必须运行 `cargo update -w` 同步 `Cargo.lock`
 3. 更新 `CHANGELOG.md`：
    - 若 `CHANGELOG.md` 不存在或缺少 `## [Unreleased]` 标题，先创建/补齐基础结构（含 `## [Unreleased]` 行及 Keep a Changelog 头部），再继续
+   - 插入前检查该版本标题行（`## [{version}] - YYYY-MM-DD`）是否已存在，已存在则跳过本步（步骤8 重入时不重复插入）
    - 在 `## [Unreleased]` 下方插入新版本条目，格式遵循 [Keep a Changelog](https://keepachangelog.com/)：
    - 标题行：`## [{version}] - YYYY-MM-DD`
    - 只使用有变更的分类：Added（新功能）、Changed（已有功能变更）、Fixed（bug 修复）、Removed（已移除功能）
@@ -495,12 +495,22 @@ ELSE 找到当前里程碑（.dev-flow/milestones/ 中未完成文档按标识�
    - 将本里程碑条目标记从 `← 新增（下一步）` / `🔄 当前` 改为 `✅ 已完成`
    - 将 DEVELOPMENT.md 中下一个待做里程碑（若有）的标记前移为 `← 新增（下一步）`，使下次 dev-flow 步骤1 能正确识别"下一个里程碑"
    - 此步骤避免 milestone-planner 再次运行时因找不到已完成的 `← 新增` 标记而重复追加 `## 里程碑划分` 段落
-5. 勾选步骤8
-6. 提交变更到 git：
+5. **生成并向用户输出「里程碑完成汇报」**（内容以里程碑文档、Bugs 表与 git 记录为依据，不凭对话记忆）：
+   - **里程碑**：`{version}` {标题}（{patch/minor/major}）
+   - **交付内容**：逐子任务一句话说明实际交付了什么
+   - **修复的 bug**：按 🔴→🟡→🟢 列出标题并附数量统计（从缺陷池转入的注明）
+   - **打回与审查轮**：共 {打回记录行数} 次打回、最终状态行（如 `第2轮｜4✓ 5✓ 6✓ 7✓`）
+   - **变更概况**：自 `{milestone-start-ref}` 起 {N} 个提交（`git log {milestone-start-ref}..HEAD --oneline` 计数），主要改动的模块/文件
+   - **发布收尾**：版本号 {旧→新}、CHANGELOG 新版本条目、DEVELOPMENT.md 标记推进结果
+
+   （汇报先于勾选：输出被中断时步骤8 保持未勾选，下次调用自然重入本步骤补发，完全依赖文档状态、不依赖对话记忆）
+6. 勾选步骤8
+7. 提交变更到 git：
    - 检测里程碑目录是否被 gitignore：`git check-ignore -q {milestone-dir}`
    - 若未被忽略：`git add {milestone-dir} docs/DEVELOPMENT.md CHANGELOG.md {version-file} && git commit -m "docs: milestone {version} completed"`
    - 若已被忽略：`git add CHANGELOG.md {version-file} && git commit -m "chore: release {version}"`
    - `{version-file}` 为步骤8.2更新的版本文件（如 `package.json`、`Cargo.toml`、`go.mod` 等）
+   - `git status` 无待提交变更时跳过提交（步骤8 重入时避免 nothing to commit 报错）
 
 **门禁**：所有检查通过
 

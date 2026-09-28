@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - **Bug 收集入口**：独立 `dev-bug` 技能，通过 `/dev-bug` 命令随时提交 bug，自动判断优先级并写入当前里程碑的 Bugs 表格
 
+- **里程碑完成汇报**：步骤8 必须生成并输出完成汇报（交付子任务、修复 bug 统计、打回与审查轮、变更概况、发布收尾），内容以里程碑文档与 git 记录为依据；汇报安排在勾选/提交之前，中断时通过步骤8 重入自愈（不依赖对话记忆）；步骤8 的 CHANGELOG 版本条目插入与 git 提交增加幂等保护，重入不重复
+
 ### Changed
 
 - **dev-flow 技能更新**：步骤2、5 调用 `devflow-review` 技能，步骤7 调用 `dev-acceptance` 技能
