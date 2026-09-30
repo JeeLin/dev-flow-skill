@@ -28,7 +28,7 @@ grep -rn "<旧关键词>" skills/ README.md CHANGELOG.md
 - `{milestone-start-ref}` = 里程碑文档 `## Context` 中的 commit hash（步骤1 用 `git rev-parse HEAD` 写入，一次写入终身保留），**不是 git tag**；变更列表必须 `git diff --name-only {milestone-start-ref}`，**禁止裸 git diff、禁止 `HEAD~N` 计数**。
 - 状态机唯一状态源：Flow Status 勾选框 +「审查轮状态行」；报告文件只作证据，不参与状态判断。打回后按 4→5→6→7 **整轮重跑**，不做定点复验。
 - 里程碑文档默认路径 `.dev-flow/milestones/`（项目 `AGENTS.md` 可覆盖），不要写成 `docs/milestones/`。
-- `scripts/check.sh` 每条规则对应一个真实事故（见规则上方注释），不得删规则，新事故要补规则。
+- `scripts/check.sh` 每条规则对应一个真实事故（见规则上方注释），不得删规则。**新事故按"谁使用时读得到"分层回灌**：① 执行期错误 → 补 `stepN.md`/`contract.md` 硬规则（使用侧每次执行必读，是唯一对使用者生效的提醒）；② 可 grep 的代码问题 → 补目标项目 `AGENTS.md` 审查维度（经沉淀管线）；③ 名称/结构漂移 → 补 check.sh 规则（只门禁本仓库）。执行期事故若不写进步骤文件/契约，使用者永远无提醒；check.sh 语义断言一律不入（措辞改写易误报，语义验证属 `scripts/scenarios.md` 二期夹具）。
 
 ## CHANGELOG
 
