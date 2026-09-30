@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- **项目侧目录改名**：`.dev-flow/` → `.mdflow/`（里程碑与报告目录约定，项目 `AGENTS.md` 可覆盖路径）。存量项目执行 `mv .dev-flow .mdflow` 或在 `AGENTS.md` 覆盖路径即可，不做双路径回退；CHANGELOG 历史条目中的旧路径按惯例不改写，本仓库 `.gitignore` 保留 `.dev-flow` 以兼容本地历史测试产物
 - **dev-flow 技能更新**：步骤2、5 调用 `devflow-review` 技能，步骤7 调用 `dev-acceptance` 技能
   - 步骤2：设计审查，传入里程碑文档和产品文档
   - 步骤5：代码审查，传入 git diff 文件列表

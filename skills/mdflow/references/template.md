@@ -2,14 +2,14 @@
 
 ## 位置
 
-默认 `.dev-flow/milestones/{version}-{name}.md`，项目 `AGENTS.md` 可覆盖。
+默认 `.mdflow/milestones/{version}-{name}.md`，项目 `AGENTS.md` 可覆盖。
 
 里程碑标识 `{version}` 支持两种风格：
 
 - **语义版本风格**：`v{major}.{minor}.{patch}`（如 `v1.0.0-基础架构.md`），mdflow 默认，便于自动递增
 - **序号风格**：`M{数字}`（如 `M30-sftp-mobile-adaptation.md`），按里程碑序号递增，常见于按迭代编号的项目
 
-两种风格的报告目录均为 `{version}-reports/`（如 `v0.1.0-reports/`、`M30-reports/`），位于 `.dev-flow/milestones/` 下。
+两种风格的报告目录均为 `{version}-reports/`（如 `v0.1.0-reports/`、`M30-reports/`），位于 `.mdflow/milestones/` 下。
 
 ## 模板
 

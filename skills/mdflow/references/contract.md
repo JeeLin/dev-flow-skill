@@ -50,7 +50,7 @@
 
 ## 报告清单
 
-步骤2/4/5/6/7 的报告存放在 `.dev-flow/milestones/{version}-reports/`（下列路径均相对于 `.dev-flow/milestones/`）：
+步骤2/4/5/6/7 的报告存放在 `.mdflow/milestones/{version}-reports/`（下列路径均相对于 `.mdflow/milestones/`）：
 
 | 步骤 | 文件名 | 内容 |
 |------|--------|------|
