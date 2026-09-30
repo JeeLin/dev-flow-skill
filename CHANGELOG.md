@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- **mdflow 技能集（新，与 dev-flow 并行保留，验证后询问切换）**：
+  - `skills/mdflow` 薄索引主技能：基础数据 + 状态机（**统一打回动作**单点定义；打回后按 4→5→6→7 整轮重跑，不做定点复验）+ 8 步分发表与强制加载规则
+  - `references/contract.md` 唯一契约源：严重度分级（含校准样例与边界例）、可证伪发现登记格式（file:line + 证据 + 断言）、git 基准规则、步骤2/5/7 审查职责切割、报告清单、发现→规则沉淀管线
+  - `references/template.md` 里程碑模板与字段语义；`references/step1-8.md` 每步 GUARD→ACT→MARK 幂等三段式（步骤1 ref 一次写入终身保留、步骤7 先登记后写状态行并逐 bug 复验、步骤8 汇报先于勾选）
+  - 子技能纯函数化并改名：`mdflow-review`（风险加权审查、沉淀建议段）、`mdflow-acceptance`、`mdflow-bug`、`mdflow-planner`——去流程头、报告文件名经 `report_path` 参数化、严重度只引用 `contract.md` 不重定义
+  - `scripts/check.sh`：A 契约一致性 / B git 基准 / C 结构完整性，34 项只读 grep 规则，每条对应一个历史事故；正负样例自测通过
+  - README 改写为两套并行说明，AGENTS.md 增加 mdflow 联动锚点（旧套锚点降为并行保留期）
+
 - **dev-acceptance 技能**：独立的功能验收（独立审查）技能，供 dev-flow 步骤7调用
   - 从 git diff 出发作为唯一入口，逐子任务和逐 bug 验证
   - 四条硬规则：git diff 驱动、不信任 ✅/[x] 标记、不引用步骤3提交信息、逐项验证不概括

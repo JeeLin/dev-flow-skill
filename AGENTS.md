@@ -2,29 +2,39 @@
 
 ## 仓库性质
 
-- OpenCode 技能集合：纯 Markdown（`skills/*/SKILL.md`）+ `tech-briefing/_meta.json`，无构建/测试/lint/CI——勿找 `package.json` 或测试套件。
+- OpenCode 技能集合：纯 Markdown（`skills/*/SKILL.md`）+ `tech-briefing/_meta.json` + `scripts/check.sh`，无构建/测试/lint/CI——勿找 `package.json` 或测试套件。
 - 文档与注释均为中文；提交用 conventional commits（`fix(dev-flow):` / `refactor(dev-flow):` / `docs:` …，见 `git log`）。
+- **两套技能并行**：新套 `mdflow*`（验证中），旧套 `dev-flow`/`devflow-review`/`dev-acceptance`/`dev-bug`/`milestone-planner`（原地保留）。切换/删除旧套前必须单独询问用户，不得擅自删改。
 
 ## 安装（本机已就绪）
 
-- `~/.config/opencode/skills/` 下 6 个软链接指向 `skills/*`（dev-flow、dev-bug、devflow-review、dev-acceptance、milestone-planner、tech-briefing），改 `skills/` 即时生效，无需安装步骤。
+- `~/.config/opencode/skills/` 下 11 个软链接指向 `skills/*`：mdflow、mdflow-review、mdflow-acceptance、mdflow-bug、mdflow-planner（新套 5 条）+ dev-flow、dev-bug、devflow-review、dev-acceptance、milestone-planner、tech-briefing（旧 6 条）。改 `skills/` 即时生效，无需安装步骤。
 - README 中的 `~/.dsh/skill` 是另一套工具的安装方式，与本机无关。
 
-## 改动技能时的联动检查（最容易出错）
+## 改动 mdflow 技能时的联动检查（最容易出错）
 
-各技能以步骤号/文件名/符号交叉引用，改一处必须全库 grep：
+新套拓扑：`skills/mdflow/{SKILL.md, references/{contract.md, template.md, step1-8.md}}` + 4 个纯函数子技能。契约**单边**书写，改一处必须全库 grep：
 
 ```bash
 grep -rn "<旧关键词>" skills/ README.md CHANGELOG.md
+./scripts/check.sh   # 改动契约/结构/步骤文件后必须 34 项全绿
 ```
 
 必须保持一致的锚点：
 
-- `dev-flow/SKILL.md` 是流程权威（8 步、状态机、审查轮状态行、门禁与打回）；devflow-review（步骤2/5 调用）、dev-acceptance（步骤7 调用）头部的「供 dev-flow 步骤X调用」及报告文件名 `stepX-*.md` 与之双侧写死。
-- 严重度 🔴🟡🟢 语义唯一定义在 dev-flow「严重度分级契约」，其他技能只引用不重定义。
-- `{milestone-start-ref}` = 里程碑文档 `## Context` 中的 commit hash，**不是 git tag**；变更列表必须 `git diff --name-only {milestone-start-ref}`，**禁止裸 git diff**（步骤3 已全部提交时结果为空 → 假通过）。
-- 状态机唯一状态源：Flow Status 勾选框 +「审查轮状态行」；报告文件只作证据。已废弃机制（`.rejected` 改名、逐审查打回）仅存在于历史 CHANGELOG 条目，属正常，勿回改。
+- `skills/mdflow/SKILL.md` 是流程权威（8 步、状态机、审查轮状态行、**统一打回动作**单点定义、门禁与分发表）；`references/step1-8.md` 每步 `## GUARD/## ACT/## MARK` 是该步唯一详述，分发表指向的文件必须存在。
+- 跨技能契约唯一源 `references/contract.md`：严重度分级（含校准样例）、发现登记格式（可证伪三要素）、git 基准规则、2/5/7 审查职责切割、报告清单（`stepX-*.md` 文件名只写在这里）、发现→规则沉淀。子技能只引用不重定义，头部**不写**「供…步骤X调用」，**不硬编码**报告文件名（经 `report_path` 参数传入）。
+- 调用名写死在 `references/step2.md`/`step5.md`（`mdflow-review`）与 `step7.md`（`mdflow-acceptance`），改子技能名必须同步。
+- `{milestone-start-ref}` = 里程碑文档 `## Context` 中的 commit hash（步骤1 用 `git rev-parse HEAD` 写入，一次写入终身保留），**不是 git tag**；变更列表必须 `git diff --name-only {milestone-start-ref}`，**禁止裸 git diff、禁止 `HEAD~N` 计数**。
+- 状态机唯一状态源：Flow Status 勾选框 +「审查轮状态行」；报告文件只作证据，不参与状态判断。打回后按 4→5→6→7 **整轮重跑**，不做定点复验。
 - 里程碑文档默认路径 `.dev-flow/milestones/`（项目 `AGENTS.md` 可覆盖），不要写成 `docs/milestones/`。
+- `scripts/check.sh` 每条规则对应一个真实事故（见规则上方注释），不得删规则，新事故要补规则。
+
+## 改动旧套技能时的联动检查（并行保留期）
+
+- `skills/dev-flow/SKILL.md` 是旧套流程权威（8 步、状态机、审查轮状态行、门禁与打回）；devflow-review（步骤2/5 调用）、dev-acceptance（步骤7 调用）头部的「供 dev-flow 步骤X调用」及报告文件名 `stepX-*.md` 与之双侧写死。
+- 严重度 🔴🟡🟢 语义唯一定义在 dev-flow「严重度分级契约」，其他技能只引用不重定义。
+- 旧套同样遵守：`{milestone-start-ref}` = commit hash 非 git tag、禁裸 git diff、里程碑路径 `.dev-flow/milestones/`。
 
 ## CHANGELOG
 
