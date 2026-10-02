@@ -39,6 +39,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- **实证审查维度沉淀进技能侧**（基于 5 个使用项目 153 里程碑/629 报告的统计：step4 打回占 57%，死代码/重复逻辑/硬编码/裸 unwrap/不一致 6 类问题 4 项目全中）：
+  - `step4.md` ACT 增加必查清单（死代码/未使用导出、重复逻辑、过长函数、注释与实现不符、跨层依赖、生产代码裸 `unwrap()`/`expect()`、硬编码魔法值、错误处理不一致）
+  - `mdflow-review` 内置默认维度集：健壮性补裸 unwrap/expect，可维护性补死代码/未使用导出与注释不符
+  - `contract.md` 沉淀管线新增技能侧去向：跨项目通用问题类型优先沉淀进步骤必查清单/内置维度，所有使用项目一次性生效，优先于逐项目改 `AGENTS.md`
 - **项目侧目录改名**：`.dev-flow/` → `.mdflow/`（里程碑与报告目录约定，项目 `AGENTS.md` 可覆盖路径）。存量项目执行 `mv .dev-flow .mdflow` 或在 `AGENTS.md` 覆盖路径即可，不做双路径回退；CHANGELOG 历史条目中的旧路径按惯例不改写，本仓库 `.gitignore` 保留 `.dev-flow` 以兼容本地历史测试产物
 - **dev-flow 技能更新**：步骤2、5 调用 `devflow-review` 技能，步骤7 调用 `dev-acceptance` 技能
   - 步骤2：设计审查，传入里程碑文档和产品文档
