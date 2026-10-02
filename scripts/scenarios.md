@@ -60,7 +60,7 @@
 | ID | 场景 | 期望 |
 |----|------|------|
 | S23 | 步骤5 调用 mdflow-review：`AGENTS.md` 无 `## 代码审查维度` | 不传 `dimensions`，技能回退内置默认 6 维；维度用 `## 审查维度` 传入则属违规（设计维度串用） |
-| S24 | 步骤2/5/7 报告产出 | 文件名严格等于契约清单 `step2-design-review.md`/`step4-simplify.md`/`step5-code-review.md`/`step6-test.md`/`step7-acceptance.md`，重跑同名覆盖 |
+| S24 | 步骤2/4/5/6/7 报告产出 | 文件名（basename）严格等于契约清单 `step2-design-review.md`/`step4-simplify.md`/`step5-code-review.md`/`step6-test.md`/`step7-acceptance.md`，存于 `round{N}/`（N=审查轮轮次）；轮内重跑覆盖同名文件，跨轮写入 `round{N+1}/` 保留历史轮 |
 | S25 | mdflow-bug 记录越界 bug，用户选「加入缺陷池」 | 写 `docs/BUGS.md`（含提出版本列），不写当前里程碑、不触发状态机回退；close 模式删行保表头 |
 
 ## G 组：废弃里程碑

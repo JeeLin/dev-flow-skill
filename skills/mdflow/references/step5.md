@@ -3,7 +3,7 @@
 ## GUARD
 
 - 前置状态：审查轮内步骤4 已执行完毕，状态行中本步为 `—`
-- 幂等：重入时报告同名覆盖（`step5-code-review.md`），从头审查
+- 幂等：重入时报告同名覆盖（`round{N}/step5-code-review.md`，轮内覆盖、跨轮写新目录），从头审查
 
 ## ACT
 
@@ -12,7 +12,7 @@
    - `type`: `code`
    - `dimensions`: **只在 `AGENTS.md` 存在 `## 代码审查维度` 段落时才传此参数**，值取该段内容；若没有该段落，则**不传** `dimensions`，让 mdflow-review 使用内置默认代码审查维度集。**严禁**把 `## 审查维度`（设计审查维度）当作代码审查维度传入——两套维度不同
    - `objects`: 变更文件列表（`git diff --name-only {milestone-start-ref}`，基准从 `## Context` 读取）
-   - `report_path`: `{version}-reports/step5-code-review.md`
+   - `report_path`: `{version}-reports/round{N}/step5-code-review.md`
 3. **登记所有发现**：报告中的问题 🔴🟡🟢 **全部**处理，确保无一遗漏，登记入 Bugs 表（来源=步骤5代码审查，状态 ⬜，优先级严格沿用报告分级，描述按契约「发现登记格式」）：
    - 🟢 与 🔴/🟡 处置一致，本里程碑内修复，不推迟到下个版本
 

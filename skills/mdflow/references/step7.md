@@ -3,7 +3,7 @@
 ## GUARD
 
 - 前置状态：审查轮内步骤6 已执行完毕（**无论步骤6 是否通过都继续执行本步，审查轮无短路**），状态行中本步为 `—`
-- 幂等：重入时报告同名覆盖（`step7-acceptance.md`），验收从头执行
+- 幂等：重入时报告同名覆盖（`round{N}/step7-acceptance.md`，轮内覆盖、跨轮写新目录），验收从头执行
 
 ## ACT
 
@@ -13,7 +13,7 @@
    - 逐子任务验证，每个子任务给出独立结论
    - 逐 bug 验证（**含本轮打回后修复的 bug，必须重新复验**），每个 bug 给出独立结论
    - 生成完整验收报告（验收原则、变更概览、子任务验收、Bug修复验收、未覆盖检查、汇总）
-3. 报告写入 `{version}-reports/step7-acceptance.md`
+3. 报告写入 `{version}-reports/round{N}/step7-acceptance.md`
 
 ## MARK
 

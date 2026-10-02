@@ -9,7 +9,7 @@
 - **语义版本风格**：`v{major}.{minor}.{patch}`（如 `v1.0.0-基础架构.md`），mdflow 默认，便于自动递增
 - **序号风格**：`M{数字}`（如 `M30-sftp-mobile-adaptation.md`），按里程碑序号递增，常见于按迭代编号的项目
 
-两种风格的报告目录均为 `{version}-reports/`（如 `v0.1.0-reports/`、`M30-reports/`），位于 `.mdflow/milestones/` 下。
+两种风格的报告目录均为 `{version}-reports/round{N}/`（如 `v0.1.0-reports/round1/`、`M30-reports/round2/`），位于 `.mdflow/milestones/` 下；{N}=审查轮状态行轮次（=打回记录行数+1），各轮报告分目录保留。
 
 ## 模板
 

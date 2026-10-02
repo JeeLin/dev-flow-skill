@@ -3,7 +3,7 @@
 ## GUARD
 
 - 前置状态：步骤3 已勾选，审查轮状态行中本步为 `—`
-- 幂等：重入时报告同名覆盖（`step4-simplify.md`），从头审查
+- 幂等：重入时报告同名覆盖（`round{N}/step4-simplify.md`，轮内覆盖、跨轮写新目录），从头审查
 
 ## ACT
 
@@ -13,7 +13,7 @@
    - `type`: `simplify`
    - `dimensions`: **不传**——精简维度固定为契约「精简必查清单」（`mdflow-review` 自行读取，与 `AGENTS.md` 维度无关）
    - `objects`: 第1步的文件列表
-   - `report_path`: `{version}-reports/step4-simplify.md`
+   - `report_path`: `{version}-reports/round{N}/step4-simplify.md`
 4. 报告须含：变更文件列表（全部审查过的文件）、每个文件的审查结论、发现的问题详情（如有）、总结结论（不少于 10 行）
 5. **登记发现**（含去重，见契约「发现登记格式」）：报告中的问题 🔴🟡🟢 全部登记入 Bugs 表（来源=步骤4代码精简，状态 ⬜，分级沿用报告）
    - **不在本步骤就地修改**，登记后继续审查，打回统一在轮末

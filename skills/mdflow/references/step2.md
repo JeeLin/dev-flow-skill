@@ -3,7 +3,7 @@
 ## GUARD
 
 - 前置状态：步骤1 已勾选，Flow Status 步骤2 未勾选
-- 幂等：重入时报告同名覆盖（`step2-design-review.md`），审查从头执行
+- 幂等：重入时报告同名覆盖（`round{N}/step2-design-review.md`，轮内覆盖、跨轮写新目录），审查从头执行
 
 ## ACT
 
@@ -12,7 +12,7 @@
    - `type`: `design`
    - `dimensions`: 从 `AGENTS.md` 存在 `## 审查维度` 段落时才传此参数，值取该段内容；若没有该段落，则**不传** `dimensions`，让 `mdflow-review` 自动使用内置默认设计审查维度集。**严禁**把 `AGENTS.md` 的 `## 代码审查维度` 当作设计审查维度传入——两套维度不同。
    - `objects`: 里程碑文档路径 和 产品文档路径
-   - `report_path`: `{version}-reports/step2-design-review.md`
+   - `report_path`: `{version}-reports/round{N}/step2-design-review.md`
 3. 根据技能返回的结论（✅ 或 ❌）决定后续：
    - ✅ → 检查人工审核配置（见下），确认后进入 MARK
    - ❌ → 先将问题登记入里程碑文档 Bugs 表（标题、优先级 🔴/🟡、来源=步骤2设计审查、描述按契约「发现登记格式」），然后按严重程度处理：
