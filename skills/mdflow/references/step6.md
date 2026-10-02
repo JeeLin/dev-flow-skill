@@ -24,11 +24,11 @@
 
 ## 质量门禁（默认值，`AGENTS.md` 的 `## 质量门禁` 可覆盖）
 
-| 检查项 | JS/TS 项目 | Python 项目 | Rust 项目 | Go 项目 | AGENTS.md 可覆盖字段 |
-|--------|-----------|------------|----------|---------|----------------------|
-| 编译检查 | `bunx tsc --noEmit` | `mypy .` | `cargo check` | `go build ./...` | `编译命令` |
-| Lint 检查 | `npm run lint` 无 error（warning 可忽略） | `ruff check .` 无 error（warning 可忽略） | `cargo clippy -- -D warnings` | `golangci-lint run` | `Lint 命令`、`Lint 规则` |
-| 测试覆盖率 | `npm test -- --coverage` 达到 90% | `pytest --cov=. --cov-report=term-missing` 达到 90% | `cargo llvm-cov` 达到 90% | `go test -coverprofile` 达到 90% | `覆盖率命令`、`最低覆盖率` |
+| 检查项 | JS/TS 项目 | Python 项目 | Rust 项目 | Go 项目 | Java/Kotlin 项目 | C#/.NET 项目 | AGENTS.md 可覆盖字段 |
+|--------|-----------|------------|----------|---------|------------------|--------------|----------------------|
+| 编译检查 | `bunx tsc --noEmit` | `mypy .` | `cargo check` | `go build ./...` | `./gradlew classes`（或 `mvn -q compile`） | `dotnet build` | `编译命令` |
+| Lint 检查 | `npm run lint` 无 error（warning 可忽略） | `ruff check .` 无 error（warning 可忽略） | `cargo clippy -- -D warnings` | `golangci-lint run` | `./gradlew ktlintCheck`（或 `mvn checkstyle:check`） | `dotnet format --verify-no-changes` | `Lint 命令`、`Lint 规则` |
+| 测试覆盖率 | `npm test -- --coverage` 达到 90% | `pytest --cov=. --cov-report=term-missing` 达到 90% | `cargo llvm-cov` 达到 90% | `go test -coverprofile` 达到 90% | `./gradlew jacocoTestReport` 达到 90%（或 `mvn jacoco:report`） | `dotnet test --collect:"XPlat Code Coverage"` 达到 90% | `覆盖率命令`、`最低覆盖率` |
 
 - 测试命令取 `AGENTS.md` 定义；JS/TS 默认命令采用 `npx`/`npm`，项目使用 `bun`/`yarn`/`pnpm` 时在 `## 质量门禁` 覆盖即可
 - 其他语言在 `AGENTS.md` 中自定义；不需要某项检查（如无类型系统）时将对应命令设为空即跳过

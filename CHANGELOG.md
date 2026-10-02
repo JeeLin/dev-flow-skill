@@ -13,7 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - `references/contract.md` 唯一契约源：严重度分级（含校准样例与边界例）、可证伪发现登记格式（file:line + 证据 + 断言）、git 基准规则、步骤2/5/7 审查职责切割、报告清单、发现→规则沉淀管线
   - `references/template.md` 里程碑模板与字段语义；`references/step1-8.md` 每步 GUARD→ACT→MARK 幂等三段式（步骤1 ref 一次写入终身保留、步骤7 先登记后写状态行并逐 bug 复验、步骤8 汇报先于勾选）
   - 子技能纯函数化并改名：`mdflow-review`（风险加权审查、沉淀建议段）、`mdflow-acceptance`、`mdflow-bug`、`mdflow-planner`——去流程头、报告文件名经 `report_path` 参数化、严重度只引用 `contract.md` 不重定义
-  - `scripts/check.sh`：A 契约一致性 / B git 基准 / C 结构完整性，34 项只读 grep 规则，每条对应一个历史事故；正负样例自测通过
+  - `scripts/check.sh`：A 契约一致性 / B git 基准 / C 结构完整性，35 项只读 grep 规则（含 A9 废弃里程碑机制），每条对应一个历史事故；正负样例自测通过
+  - `scripts/run-scenarios.sh` + `scripts/fixtures/SNN.md`：二期状态机场景推演夹具（S01-S22, S26），场景底稿见 `scripts/scenarios.md`
   - README 改写为两套并行说明，AGENTS.md 增加 mdflow 联动锚点（旧套锚点降为并行保留期）
 
 - **dev-acceptance 技能**：独立的功能验收（独立审查）技能，供 dev-flow 步骤7调用
@@ -37,6 +38,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - **里程碑完成汇报**：步骤8 必须生成并输出完成汇报（交付子任务、修复 bug 统计、打回与审查轮、变更概况、发布收尾），内容以里程碑文档与 git 记录为依据；汇报安排在勾选/提交之前，中断时通过步骤8 重入自愈（不依赖对话记忆）；步骤8 的 CHANGELOG 版本条目插入与 git 提交增加幂等保护，重入不重复
 
+- **废弃里程碑机制**：Flow Status 新增 `状态` 字段（进行中 / 已放弃），状态机排除 `状态=已放弃` 的文档不参与当前里程碑选择；全部里程碑均已完成或已放弃时回到步骤1，避免卡死在无法完成的里程碑
+
 ### Changed
 
 - **实证审查维度沉淀进技能侧**（基于 5 个使用项目 153 里程碑/629 报告的统计：step4 打回占 57%，死代码/重复逻辑/硬编码/裸 unwrap/不一致 6 类问题 4 项目全中）：
@@ -49,6 +52,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - 步骤5：代码审查，传入 git diff 文件列表
   - 步骤7：功能验收（独立审查），从 git diff 出发逐项验证子任务/bug 是否真正满足需求，不信任流程标记
 - **步骤3 原则更新**：明确代码提交时机 - 实现每个子任务后立即提交，修复每个 bug 后立即提交
+- **提交前自查**：步骤3 新增「提交前自查」，逐文件比对 `git diff --name-only {milestone-start-ref}` 过一遍契约「精简必查清单」 8 项，命中立即修复——审查轮第一站，自查可省掉整轮打回重跑
+- **审查统一委托**：步骤4 代码精简委托给 `mdflow-review type=simplify`，维度唯一源为契约「精简必查清单」；步骤2/5 审查维度条件化传入（仅在 `AGENTS.md` 存在 `## 审查维度`/`## 代码审查维度` 段落时传 `dimensions`，否则不传让技能使用内置默认维度集）
+- **质量门禁扩展**：步骤6 新增 Java/Kotlin、C#/.NET 项目支持
+- **版本管理扩展**：步骤8 版本管理表新增 Java/Kotlin（Maven/Gradle）、C#/.NET 项目支持
+- **状态机死分支清理**：移除冗余的「全部完成 → 提示」叶节点，入口分支「全部已完成 → 步骤1」为唯一权威；S22 场景预期更新为回到步骤1
 
 - **审查轮批量审查机制**：步骤4/5/6/7 从逐审查独立打回改为批量审查轮 + 轮末统一打回
   - 步骤3 完成后按 4→5→6→7 连续执行，轮内每步登记发现并更新「审查轮状态行」，不勾选、不打回、无短路（步骤6 失败步骤7 照跑）

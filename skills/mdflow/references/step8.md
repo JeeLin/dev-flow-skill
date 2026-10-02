@@ -64,3 +64,5 @@
 | Rust | `Cargo.toml` | 手动修改后运行 `cargo update -w` 同步 Cargo.lock |
 | Python | `pyproject.toml` / `setup.cfg` | 手动修改 |
 | Go | `go.mod` | 手动修改（`go mod edit -version=vX.Y.Z`） |
+| Java/Kotlin | `pom.xml`（Maven）/ `build.gradle`（Gradle） | Maven：`mvn versions:set -DnewVersion=vX.Y.Z -DgenerateBackupPoms=false`；Gradle：手动修改 `version` |
+| C#/.NET | `.csproj` / `Directory.Build.props` | `dotnet build /p:Version=X.Y.Z`（或手动修改 `Version`） |

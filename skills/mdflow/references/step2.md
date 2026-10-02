@@ -10,7 +10,7 @@
 1. **必须执行**：调用 `skill` 工具，参数 `name: "mdflow-review"`，禁止自己生成报告
 2. 加载技能后，**必须严格按照技能指令执行审查**，参数：
    - `type`: `design`
-   - `dimensions`: 从 `AGENTS.md` 的 `## 审查维度` 读取的列表
+   - `dimensions`: 从 `AGENTS.md` 存在 `## 审查维度` 段落时才传此参数，值取该段内容；若没有该段落，则**不传** `dimensions`，让 `mdflow-review` 自动使用内置默认设计审查维度集。**严禁**把 `AGENTS.md` 的 `## 代码审查维度` 当作设计审查维度传入——两套维度不同。
    - `objects`: 里程碑文档路径 和 产品文档路径
    - `report_path`: `{version}-reports/step2-design-review.md`
 3. 根据技能返回的结论（✅ 或 ❌）决定后续：

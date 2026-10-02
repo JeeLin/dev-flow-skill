@@ -84,6 +84,13 @@ for s in mdflow-review mdflow-acceptance; do
   if grep -q '沉淀建议' "skills/$s/SKILL.md"; then pass "A8 沉淀建议段: $s"; else fail "A8 沉淀建议段: $s"; fi
 done
 
+# A9 废弃里程碑机制：Flow Status 必有 状态 字段（状态机排除已放弃文档，缺字段则无法识别废弃 milestone 导致卡死）
+if grep -q '状态：' skills/mdflow/references/template.md; then
+  pass "A9 模板 Flow Status 有状态字段"
+else
+  fail "A9 模板 Flow Status 缺少状态字段"
+fi
+
 # ---------- B 组：git 基准规则 ----------
 
 section "B git 基准规则"
