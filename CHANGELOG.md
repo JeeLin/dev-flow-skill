@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - `references/contract.md` 唯一契约源：严重度分级（含校准样例与边界例）、可证伪发现登记格式（file:line + 证据 + 断言）、git 基准规则、步骤2/5/7 审查职责切割、报告清单、发现→规则沉淀管线
   - `references/template.md` 里程碑模板与字段语义；`references/step1-8.md` 每步 GUARD→ACT→MARK 幂等三段式（步骤1 ref 一次写入终身保留、步骤7 先登记后写状态行并逐 bug 复验、步骤8 汇报先于勾选）
   - 子技能纯函数化并改名：`mdflow-review`（风险加权审查、沉淀建议段）、`mdflow-acceptance`、`mdflow-bug`、`mdflow-planner`——去流程头、报告文件名经 `report_path` 参数化、严重度只引用 `contract.md` 不重定义
-  - `scripts/check.sh`：A 契约一致性 / B git 基准 / C 结构完整性，35 项只读 grep 规则（含 A9 废弃里程碑机制），每条对应一个历史事故；正负样例自测通过
+  - `scripts/check.sh`：A 契约一致性 / B git 基准 / C 结构完整性，36 项只读 grep 规则（含 A9 废弃里程碑机制、C5 沉淀候选三侧齐全），每条对应一个历史事故；正负样例自测通过
   - `scripts/run-scenarios.sh` + `scripts/fixtures/SNN.md`：二期状态机场景推演夹具（S01-S22, S26），场景底稿见 `scripts/scenarios.md`
   - README 改写为两套并行说明，AGENTS.md 增加 mdflow 联动锚点（旧套锚点降为并行保留期）
 
@@ -37,6 +37,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Bug 收集入口**：独立 `dev-bug` 技能，通过 `/dev-bug` 命令随时提交 bug，自动判断优先级并写入当前里程碑的 Bugs 表格
 
 - **里程碑完成汇报**：步骤8 必须生成并输出完成汇报（交付子任务、修复 bug 统计、打回与审查轮、变更概况、发布收尾），内容以里程碑文档与 git 记录为依据；汇报安排在勾选/提交之前，中断时通过步骤8 重入自愈（不依赖对话记忆）；步骤8 的 CHANGELOG 版本条目插入与 git 提交增加幂等保护，重入不重复
+
+- **沉淀建议→沉淀候选管线**（session 集中收集，使用方不主动沉淀）：
+  - 报告格式改造：`mdflow-review`（设计/代码/精简）与 `mdflow-acceptance` 报告末尾的自由文本占位行改为固定表格 `## 沉淀建议`（序｜发现/模式｜可 grep｜候选去向｜草案），列定义唯一源在契约「沉淀建议格式」，供当前 session 按行扫描 `round{N}/` 报告
+  - 里程碑文档新增 `## 沉淀候选` 台账小节（列定义唯一源在契约「沉淀候选格式」，模板只放空表头）：来源｜发现/模式｜可 grep｜候选去向｜草案｜出现轮次｜裁决
+  - 步骤8 ACT 新增第5 步「沉淀候选汇总与裁决」：扫描 `round1..round{N}` **全部轮** step2/4/5/7 报告（步骤4/5 零发现门禁 → 通过轮恒空，被打回轮才携带发现，只扫最终轮台账必空）+ 对话观察 + 项目历史统计，按「发现/模式」去重合并入台账；维护者逐行 Accept（✅）/ Reject（❌），Accept 后 session 半自动写入 `scripts/check.sh` / 目标项目 `AGENTS.md` 代码审查维度 / 技能侧硬规则并跑双门禁，Reject 留档不写入；已裁决行幂等不重置
+  - 汇报新增「沉淀候选」统计段；勾选步骤8 的前置为台账无 ⬜ 待裁决行
+  - `check.sh` 新增 C5 沉淀候选三侧齐全（契约/模板/step8），35→36 项
+  - README 安装路径更正：`~/.dsh/skill` → `~/.config/opencode/skills`（6 处，原指向另一套工具）
 
 - **废弃里程碑机制**：Flow Status 新增 `状态` 字段（进行中 / 已放弃），状态机排除 `状态=已放弃` 的文档不参与当前里程碑选择；全部里程碑均已完成或已放弃时回到步骤1，避免卡死在无法完成的里程碑
 

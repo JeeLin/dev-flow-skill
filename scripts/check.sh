@@ -169,6 +169,13 @@ else
   fail "C4 轮次公式一致"
 fi
 
+# C5 沉淀候选三侧齐全（契约台账列定义 / 模板小节 / step8 汇总裁决，改一处忘两处的事故类，与 A3/C2 同源）
+c5_missing=""
+grep -q '### 沉淀候选格式' skills/mdflow/references/contract.md || c5_missing="$c5_missing contract"
+grep -q '^## 沉淀候选$' skills/mdflow/references/template.md || c5_missing="$c5_missing template"
+grep -q '沉淀候选汇总与裁决' skills/mdflow/references/step8.md || c5_missing="$c5_missing step8"
+if [ -z "$c5_missing" ]; then pass "C5 沉淀候选三侧齐全"; else fail "C5 沉淀候选缺失:$c5_missing"; fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"

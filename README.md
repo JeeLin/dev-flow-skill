@@ -9,7 +9,7 @@
 | 主技能 | `skills/mdflow` | 薄索引：基础数据 + 状态机 + 分发；`references/` 下唯一契约 `contract.md`、模板 `template.md`、步骤文件 `step1-8.md` |
 | 子技能 | `mdflow-review` / `mdflow-acceptance` / `mdflow-bug` / `mdflow-planner` | 纯函数：审查、验收、bug 登记、里程碑规划 |
 
-一致性检查：`scripts/check.sh`（A 契约一致性 / B git 基准 / C 结构完整性，35 项只读 grep 规则，每条对应一个历史事故）；二期状态机场景推演 `scripts/run-scenarios.sh`（场景底稿见 `scripts/scenarios.md`）。
+一致性检查：`scripts/check.sh`（A 契约一致性 / B git 基准 / C 结构完整性，36 项只读 grep 规则，每条对应一个历史事故）；二期状态机场景推演 `scripts/run-scenarios.sh`（场景底稿见 `scripts/scenarios.md`）。
 
 ## 安装
 

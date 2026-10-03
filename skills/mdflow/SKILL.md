@@ -110,7 +110,7 @@ ELSE 找到当前里程碑（.mdflow/milestones/ 中 `状态` 为 `进行中` �
 | 5 | 代码审查 | 本步零发现 | `references/step5.md` |
 | 6 | 测试验证 | 测试+编译+Lint+覆盖率达标 | `references/step6.md` |
 | 7 | 功能验收 | 轮末四项全 ✓（本步结论 ✅） | `references/step7.md` |
-| 8 | 提交 | 所有检查通过；汇报先于勾选 | `references/step8.md` |
+| 8 | 提交 | 所有检查通过；沉淀候选无 ⬜ 待裁决；汇报先于勾选 | `references/step8.md` |
 
 **执行规则**：
 

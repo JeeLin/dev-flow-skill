@@ -17,14 +17,15 @@
 
 ```bash
 grep -rn "<旧关键词>" skills/ README.md CHANGELOG.md
-./scripts/check.sh   # 改动契约/结构/步骤文件后必须 35 项全绿（A 契约 / B git 基准 / C 结构，含 A9 废弃里程碑机制）
+./scripts/check.sh   # 改动契约/结构/步骤文件后必须 36 项全绿（A 契约 / B git 基准 / C 结构，含 A9 废弃里程碑机制、C5 沉淀候选三侧齐全）
 ./scripts/run-scenarios.sh   # 二期状态机场景推演（场景底稿见 scripts/scenarios.md）
 ```
 
 必须保持一致的锚点：
 
 - `skills/mdflow/SKILL.md` 是流程权威（8 步、状态机、审查轮状态行、**统一打回动作**单点定义、门禁与分发表）；`references/step1-8.md` 每步 `## GUARD/## ACT/## MARK` 是该步唯一详述，分发表指向的文件必须存在。
-- 跨技能契约唯一源 `references/contract.md`：严重度分级（含校准样例）、发现登记格式（可证伪三要素）、git 基准规则、2/4/5/7 审查职责切割、报告清单（`stepX-*.md` 文件名只写在这里）、发现→规则沉淀。子技能只引用不重定义，头部**不写**「供…步骤X调用」，**不硬编码**报告文件名（经 `report_path` 参数传入）。
+- 跨技能契约唯一源 `references/contract.md`：严重度分级（含校准样例）、发现登记格式（可证伪三要素）、git 基准规则、2/4/5/7 审查职责切割、报告清单（`stepX-*.md` 文件名只写在这里）、发现→规则沉淀（含「沉淀建议格式」「沉淀候选格式」两个表格列定义）。子技能只引用不重定义，头部**不写**「供…步骤X调用」，**不硬编码**报告文件名（经 `report_path` 参数传入）。
+- 沉淀候选三侧：契约 `### 沉淀候选格式`（列定义唯一源）、模板 `## 沉淀候选` 小节（空表头）、`references/step8.md` ACT 第5 步（汇总与裁决）——改一处必须三处同步（check.sh C5 门禁）。
 - 调用名写死在 `references/step2.md`/`step4.md`/`step5.md`（`mdflow-review`）与 `step7.md`（`mdflow-acceptance`），改子技能名必须同步。
 - `{milestone-start-ref}` = 里程碑文档 `## Context` 中的 commit hash（步骤1 用 `git rev-parse HEAD` 写入，一次写入终身保留），**不是 git tag**；变更列表必须 `git diff --name-only {milestone-start-ref}`，**禁止裸 git diff、禁止 `HEAD~N` 计数**。
 - 状态机唯一状态源：Flow Status 勾选框 +「审查轮状态行」；报告文件只作证据，不参与状态判断。打回后按 4→5→6→7 **整轮重跑**，不做定点复验。
