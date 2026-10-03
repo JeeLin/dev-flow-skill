@@ -9,7 +9,6 @@
 ## 安装（本机已就绪）
 
 - `~/.config/opencode/skills/` 下 6 个软链接指向本仓库 `skills/*`：mdflow、mdflow-review、mdflow-acceptance、mdflow-bug、mdflow-planner、tech-briefing。改 `skills/` 即时生效，无需安装步骤。
-- README 中的 `~/.dsh/skill` 是另一套工具的安装方式，与本机无关。
 
 ## 改动技能时的联动检查（最容易出错）
 
