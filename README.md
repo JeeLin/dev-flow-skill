@@ -18,12 +18,12 @@
 git clone git@github.com:JeeLin/dev-flow-skill.git ~/dev-flow-skill
 
 # 创建 skill 目录并 symlink
-mkdir -p ~/.dsh/skill
-ln -s ~/dev-flow-skill/skills/mdflow ~/.dsh/skill/mdflow
-ln -s ~/dev-flow-skill/skills/mdflow-review ~/.dsh/skill/mdflow-review
-ln -s ~/dev-flow-skill/skills/mdflow-acceptance ~/.dsh/skill/mdflow-acceptance
-ln -s ~/dev-flow-skill/skills/mdflow-bug ~/.dsh/skill/mdflow-bug
-ln -s ~/dev-flow-skill/skills/mdflow-planner ~/.dsh/skill/mdflow-planner
+mkdir -p ~/.config/opencode/skills
+ln -s ~/dev-flow-skill/skills/mdflow ~/.config/opencode/skills/mdflow
+ln -s ~/dev-flow-skill/skills/mdflow-review ~/.config/opencode/skills/mdflow-review
+ln -s ~/dev-flow-skill/skills/mdflow-acceptance ~/.config/opencode/skills/mdflow-acceptance
+ln -s ~/dev-flow-skill/skills/mdflow-bug ~/.config/opencode/skills/mdflow-bug
+ln -s ~/dev-flow-skill/skills/mdflow-planner ~/.config/opencode/skills/mdflow-planner
 ```
 
 ## 使用
