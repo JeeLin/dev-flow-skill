@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - `references/contract.md` 唯一契约源：严重度分级（含校准样例与边界例）、可证伪发现登记格式（file:line + 证据 + 断言）、git 基准规则、步骤2/5/7 审查职责切割、报告清单、发现→规则沉淀管线
   - `references/template.md` 里程碑模板与字段语义；`references/step1-8.md` 每步 GUARD→ACT→MARK 幂等三段式（步骤1 ref 一次写入终身保留、步骤7 先登记后写状态行并逐 bug 复验、步骤8 汇报先于勾选）
   - 子技能纯函数化并改名：`mdflow-review`（风险加权审查、沉淀建议段）、`mdflow-acceptance`、`mdflow-bug`、`mdflow-planner`——去流程头、报告文件名经 `report_path` 参数化、严重度只引用 `contract.md` 不重定义
-  - `scripts/check.sh`：A 契约一致性 / B git 基准 / C 结构完整性，36 项只读 grep 规则（含 A9 废弃里程碑机制、C5 沉淀候选三侧齐全），每条对应一个历史事故；正负样例自测通过
+  - `scripts/check.sh`：A 契约一致性 / B git 基准 / C 结构完整性，38 项只读 grep 规则（含 A9 废弃里程碑机制、C5 沉淀候选三侧齐全、C6 禁用繁体字元、C7 沉淀锚点位置），每条对应一个历史事故；正负样例自测通过
   - `scripts/run-scenarios.sh` + `scripts/fixtures/SNN.md`：二期状态机场景推演夹具（S01-S22, S26），场景底稿见 `scripts/scenarios.md`
   - README 改写为两套并行说明，AGENTS.md 增加 mdflow 联动锚点（旧套锚点降为并行保留期）
 
@@ -46,8 +46,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - `check.sh` 新增 C5 沉淀候选三侧齐全（契约/模板/step8），35→36 项
   - README 安装路径更正：`~/.dsh/skill` → `~/.config/opencode/skills`（6 处，原指向另一套工具）
 
-- **废弃里程碑机制**：Flow Status 新增 `状态` 字段（进行中 / 已放弃），状态机排除 `状态=已放弃` 的文档不参与当前里程碑选择；全部里程碑均已完成或已放弃时回到步骤1，避免卡死在无法完成的里程碑
+- **中文用字规范与 CJK 门禁**（跨项目复现后回灌技能侧）：消费者 REX 的 `.mdflow` 文档实测 188 处简繁混写 / 33 字元，而 REX 自身 README/AGENTS.md 传统计 0（非项目习惯，系 mdflow 会话写 CJK 时的归一化污染，与本仓历史「锚点第二字被写成同形繁体 U+6DFA」把 C5 锚点写坏同源）→ 判定满足 item6 跨 ≥2 项目复现判据，沉淀为技能侧硬规则：
+  - 契约新增 `## 中文用字规范`：mdflow 全部产出（里程碑文档、各轮报告、沉淀建议/沉淀候选表格）一律简体，`沉淀` 锚点固定为 U+6C89 + U+6DC0；引用外部原文保持原样
+  - 新增 `scripts/cjk-forbidden.txt`：禁用繁体字表（精简表 46 字元，每行一字元 + 注释说明选取原则与不收录项）
+  - `check.sh` 新增 C6（禁用繁体字元，码点级，扫 skills/ + 根 *.md + scripts/*.sh）与 C7（`U+6C89` 后必须紧跟 `U+6DC0` 的锚点位置规则，覆盖 U+6DFA/U+6168/U+6DF7 等任意形近替代），36→38 项
+  - 形近字（感慨/混乱）本身是合法简体，只由 C7 位置规则兜底、不进字表全局禁用；两条规则均只做码点断言不做语义断言，且已用注入探针验证「该红时红」（曾因手算八进制字节错误导致 C7 假绿灯，已改为 python `\u` 转义生成）
 
+- **废弃里程碑机制**：Flow Status 新增 `状态` 字段（进行中 / 已放弃），状态机排除 `状态=已放弃` 的文档不参与当前里程碑选择；全部里程碑均已完成或已放弃时回到步骤1，避免卡死在无法完成的里程碑
 ### Changed
 
 - **实证审查维度沉淀进技能侧**（基于 5 个使用项目 153 里程碑/629 报告的统计：step4 打回占 57%，死代码/重复逻辑/硬编码/裸 unwrap/不一致 6 类问题 4 项目全中）：

@@ -176,6 +176,72 @@ grep -q '^## 沉淀候选$' skills/mdflow/references/template.md || c5_missing="
 grep -q '沉淀候选汇总记录' skills/mdflow/references/step8.md || c5_missing="$c5_missing step8"
 if [ -z "$c5_missing" ]; then pass "C5 沉淀候选三侧齐全"; else fail "C5 沉淀候选缺失:$c5_missing"; fi
 
+# C6 mdflow 产出文档禁用繁体字元（码点级，字表独立维护于 scripts/cjk-forbidden.txt）
+#    事故：mdflow 会话写 CJK 时产出简繁混写污染——消费者 REX 的 .mdflow 文档实测 188 处 / 33 字元
+#    （现状/设计核对/门槛 等词被写成繁体形），而 REX 自身 README/AGENTS.md 传统计 0，证明非项目习惯；
+#    本仓历史亦出现过把 C5 锚点第二字写成同形繁体（U+6DFA）的事故。故按字表做码点级拦截，零语义断言。
+#    本规则注释本身不得写字面禁字，否则自指违反（与 C5 同源教训）。
+c6_tbl="scripts/cjk-forbidden.txt"
+if [ ! -f "$c6_tbl" ]; then
+  fail "C6 缺字表 $c6_tbl"
+else
+  c6_pat=$(mktemp)
+  # 去掉每行注释与空白，每行只留一个字元（保持逐行，供 grep -f 逐条定长匹配）
+  sed 's/#.*//' "$c6_tbl" | sed 's/[[:space:]]//g' | grep -v '^$' > "$c6_pat"
+  if [ ! -s "$c6_pat" ]; then
+    fail "C6 字表为空"
+  else
+    c6_hits=$(grep -rnF -f "$c6_pat" \
+      --include='*.md' --include='*.sh' \
+      skills scripts README.md AGENTS.md CHANGELOG.md 2>/dev/null \
+      | grep -v "^$c6_tbl:" | head -n 5)
+    if [ -z "$c6_hits" ]; then
+      pass "C6 无禁用繁体字元"
+    else
+      fail "C6 命中禁用繁体字元: $(echo "$c6_hits" | tr '\n' ' ')"
+    fi
+  fi
+  rm -f "$c6_pat"
+fi
+
+# C7 锚点位置校验：U+6C89 之后必须紧跟 U+6DC0（沉淀 是本仓库唯一的 U+6C89 用法）
+#    事故：锚点第二字曾被写成形近繁体/形近简体（U+6DFA / U+6168 / U+6DF7），而 慨/混
+#    本身是合法简体字（感慨/混乱），全局禁字会误伤，故只能按「位置」而非「字集」判定——
+#    位置规则同时覆盖未来任何形近替代，无需枚举。
+#    注意：禁用字面八进制手算会错（曾把 U+6C89 写成 \346\265\201 → 假绿灯），
+#    故此处用 python \u 转义生成，不手算字节。
+c7_hits=$(python3 -c "
+import pathlib
+CHEN = '\u6C89'
+DIAN = '\u6DC0'
+targets = []
+for r in ['skills', 'scripts', 'README.md', 'AGENTS.md', 'CHANGELOG.md']:
+    p = pathlib.Path(r)
+    if p.is_file():
+        targets.append(p)
+    elif p.is_dir():
+        targets += [f for f in p.rglob('*')
+                    if f.is_file() and f.suffix in ('.md', '.sh')]
+out = []
+for f in targets:
+    try:
+        t = f.read_text(encoding='utf-8')
+    except Exception:
+        continue
+    for i, ch in enumerate(t):
+        if ch != CHEN:
+            continue
+        nxt = t[i + 1] if i + 1 < len(t) else ''
+        if nxt != DIAN:
+            out.append('%s:%d next=U+%04X' % (f, t.count(chr(10), 0, i) + 1, ord(nxt)))
+print('; '.join(out[:5]) if out else 'CLEAN')
+")
+if [ "$c7_hits" = "CLEAN" ]; then
+  pass "C7 沉淀锚点位置正确"
+else
+  fail "C7 沉淀锚点被形近字替换: $c7_hits"
+fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"
