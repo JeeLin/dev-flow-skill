@@ -350,6 +350,20 @@ grep -q '技能侧修正回流' skills/mdflow/references/step8.md || c14_missing
 grep -q '历史裁决留档' skills/mdflow/references/step8.md || c14_missing="$c14_missing step8-keep"
 if [ -z "$c14_missing" ]; then pass "C14 技能侧修正回流台账"; else fail "C14 台账回流约定缺失:$c14_missing"; fi
 
+# C15 step6 质量门禁不可漏写（跳过验证后判绿的事故类，与 C10 提交前验证同源）
+#    事故链：OCC 的 AGENTS.md 定义 `scripts/check-coverage.sh 98`（98% 覆盖率门槛），
+#    但 v0.3.0 / v0.1.0 / v0.2.1 的 step6 报告「质量门禁」表竟没有覆盖率行，结论却写 ✅
+#    ——等于在从未执行覆盖率校验的前提下判绿，直到下游才发现。GitPulse 则固结了
+#    `Lines 92.29% (>=90%)` 的阈值+实际数值形态。该纪律跨项目存在但无门禁强制，
+#    故落技能侧：已定义（命令非空）的门检项必须固结，覆盖率须写明阈值+实际值。
+#    本规则只断言契约文本与步骤约定仍在位（零语义断言）。
+c15_missing=""
+grep -q '步骤6 质量门禁表格不可漏写' skills/mdflow/references/contract.md || c15_missing="$c15_missing contract"
+grep -q '阈值 | 实际数值' skills/mdflow/references/contract.md || c15_missing="$c15_missing contract-value"
+grep -q '不可漏写 .AGENTS.md. 中定义的任一非空门检项' skills/mdflow/references/step6.md || c15_missing="$c15_missing step6-act"
+grep -q '不可漏写、不可只写' skills/mdflow/references/step6.md || c15_missing="$c15_missing step6-gate"
+if [ -z "$c15_missing" ]; then pass "C15 step6 质量门禁不可漏写"; else fail "C15 step6 门禁约定缺失:$c15_missing"; fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"
