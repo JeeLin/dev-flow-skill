@@ -284,6 +284,42 @@ grep -q '构建与测试通过' skills/mdflow/references/step3.md || c10_missing
 grep -q '构建与测试通过' skills/mdflow/references/step8.md || c10_missing="$c10_missing step8"
 if [ -z "$c10_missing" ]; then pass "C10 提交前验证构建与测试"; else fail "C10 提交前验证约定缺失:$c10_missing"; fi
 
+# C11 沉淀建议表头是解析锚点，列不可增删改名换序（跨项目实测 31 份报告仅 16 份标准 5 列的事故类）
+#    事故链：步骤8 按列名取值解析各轮报告的沉淀建议表，而实测 9 份报告改了列、6 份整表缺失；
+#    列漂移会解析出错误的候选去向并写歪台账，且缺表被静默跳过（看着像"这轮没沉淀"）。
+#    本规则断言表头文本与「不可增删改名换序」「不合规不入台账」的约定仍在位（零语义断言）。
+c11_missing=""
+HDR='| 序 | 发现/模式 | 可 grep | 候选去向 | 草案（匹配模式 → 期望） |'
+grep -q '表头 5 列是解析锚点' skills/mdflow/references/contract.md || c11_missing="$c11_missing contract-hdr"
+grep -q '不合规报告不入台账' skills/mdflow/references/contract.md || c11_missing="$c11_missing contract-reject"
+grep -q '当场退回该轮重生成' skills/mdflow/references/step8.md || c11_missing="$c11_missing step8-reject"
+for pair in "skills/mdflow-review/SKILL.md 3" "skills/mdflow-acceptance/SKILL.md 1"; do
+  set -- $pair
+  n=$(grep -cF "$HDR" "$1")
+  if [ "$n" -ne "$2" ]; then c11_missing="$c11_missing $(basename $(dirname $1))-hdr($n)"; fi
+done
+n=$(grep -cF '表头 5 列不得增删、改名或换序' skills/mdflow-review/SKILL.md)
+[ "$n" -eq 3 ] || c11_missing="$c11_missing review-note($n)"
+n=$(grep -cF '表头 5 列不得增删、改名或换序' skills/mdflow-acceptance/SKILL.md)
+[ "$n" -eq 1 ] || c11_missing="$c11_missing acceptance-note($n)"
+if [ -z "$c11_missing" ]; then pass "C11 沉淀建议表头列不可漂移"; else fail "C11 沉淀建议表头约定缺失:$c11_missing"; fi
+
+# C12 断言有效性必须进内置代码审查维度集（恒真断言/不可达输入/同义复述/未被调用的事故类）
+#    事故链：跨 3 项目复现——GitPulse 台账 #38/#45、OCC step4-backend、REX v0.90.0 #231，
+#    step7 验收点名「应入步骤5 清单」。恒真断言与 f(x)==f(x) 式委派让测试全绿而缺陷未覆盖，
+#    步骤6/7 反而给出绿灯。核实缺口：3 个项目 AGENTS.md 均无「## 代码审查维度」段，
+#    全部回退到 mdflow-review 内置 6 维度（无测试/断言项），step5 无任何断言相关字样。
+c12_missing=""
+grep -q '^  | 7 | 测试有效性 |' skills/mdflow-review/SKILL.md || c12_missing="$c12_missing dimension"
+grep -q '测试有效性（需精读测试文件本身' skills/mdflow-review/SKILL.md || c12_missing="$c12_missing weighting"
+grep -q '断言有效性必查' skills/mdflow/references/step5.md || c12_missing="$c12_missing step5-act"
+grep -q '恒真断言' skills/mdflow/references/step5.md || c12_missing="$c12_missing step5-tautology"
+grep -q '不可达输入组合' skills/mdflow/references/step5.md || c12_missing="$c12_missing step5-unreachable"
+grep -q '同义复述' skills/mdflow/references/step5.md || c12_missing="$c12_missing step5-restate"
+grep -q '未被调用' skills/mdflow/references/step5.md || c12_missing="$c12_missing step5-uncalled"
+grep -q '断言有效性四类无效形态均已核对' skills/mdflow/references/step5.md || c12_missing="$c12_missing step5-gate"
+if [ -z "$c12_missing" ]; then pass "C12 断言有效性维度已落地"; else fail "C12 断言有效性约定缺失:$c12_missing"; fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"
