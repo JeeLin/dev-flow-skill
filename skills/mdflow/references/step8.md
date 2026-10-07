@@ -9,7 +9,7 @@
 
 ## ACT
 
-1. 检查：commit 粒度（一子功能点一 commit）、commit message 格式（conventional commits）、产品文档未被污染
+1. 检查：commit 粒度（一子功能点一 commit）、commit message 格式（conventional commits）、产品文档未被污染、**构建与测试通过**（契约「提交前验证」，未通过先修到绿，不得先提交后补）
 2. 更新项目文件中的版本号（见「版本管理」）
    - Rust 项目：更新 `Cargo.toml` 后必须运行 `cargo update -w` 同步 `Cargo.lock`
 3. 更新 `CHANGELOG.md`（GUARD：版本标题行已存在则整步跳过）：
@@ -59,7 +59,7 @@
 
 ## 门禁
 
-所有检查通过；沉淀候选汇总记录完成（台账只写 ⬜，裁决与落地延后到 session 回头分析）。
+所有检查通过（含构建与测试）；沉淀候选汇总记录完成（台账只写 ⬜，裁决与落地延后到 session 回头分析）。
 
 ## 版本管理
 

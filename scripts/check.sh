@@ -256,6 +256,34 @@ grep -q '写入行数 == 缺陷池条目数' skills/mdflow/SKILL.md || c8_missin
 grep -q '缺陷池搬运必须无损且成对' scripts/check.sh || c8_missing="$c8_missing self"
 if [ -z "$c8_missing" ]; then pass "C8 缺陷池搬运无损且成对"; else fail "C8 缺陷池搬运约定缺失:$c8_missing"; fi
 
+# C9 子任务文件认领与点名核对（无序并行改同一 file:line 互相覆盖/行号位移；照名字误改无关代码的事故类）
+#    事故链：GitPulse v0.7.0 设计审查实证——子任务「文件结构」跨节重复认领同一 file:line
+#    且无依赖声明，步骤3 互相覆盖；另一子任务按用例名点名要改写的既有用例，步骤3 未核对
+#    实际内容就照名字改掉了无关用例。模板与契约此前都没有对应概念（纯真空）。零语义断言。
+c9_missing=""
+grep -q '^## 子任务文件认领$' skills/mdflow/references/contract.md || c9_missing="$c9_missing contract-claim"
+grep -q '单向有序链' skills/mdflow/references/contract.md || c9_missing="$c9_missing contract-order"
+grep -q '\*\*依赖\*\*' skills/mdflow/references/template.md || c9_missing="$c9_missing template-field"
+grep -q '文件认领自查' skills/mdflow/references/step1.md || c9_missing="$c9_missing step1-claim"
+grep -q '点名核对' skills/mdflow/references/step1.md || c9_missing="$c9_missing step1-named"
+grep -q '点名核对' skills/mdflow/references/step3.md || c9_missing="$c9_missing step3-named"
+grep -q '与文档描述不符即' skills/mdflow/references/step3.md || c9_missing="$c9_missing step3-stop"
+grep -q '未 ✅ 时不得动手' skills/mdflow/references/step3.md || c9_missing="$c9_missing step3-dep"
+if [ -z "$c9_missing" ]; then pass "C9 子任务文件认领与点名核对"; else fail "C9 子任务认领约定缺失:$c9_missing"; fi
+
+# C10 提交前必须验证构建与测试（实现 lane 在 shell 不可用时把未编译代码留在工作树的事故类）
+#    事故链：GitPulse v0.7.0 设计审查实证——派发实现 lane 时 shell 不可用，代码以 E0308
+#    未编译状态留在工作树并被直接提交，直到步骤6 才暴露，整轮审查返工。原步骤3 门禁只有
+#    「精简必查清单」自查、不含构建/测试，步骤8 也只查 git status，属流程级空洞。零语义断言。
+c10_missing=""
+grep -q '^## 提交前验证$' skills/mdflow/references/contract.md || c10_missing="$c10_missing contract"
+grep -q '不得伪造通过' skills/mdflow/references/contract.md || c10_missing="$c10_missing contract-nofake"
+grep -q '未通过不得进入 MARK' skills/mdflow/references/step3.md || c10_missing="$c10_missing step3"
+grep -q '代码不得以未编译状态留在工作树' skills/mdflow/references/step3.md || c10_missing="$c10_missing step3-shell"
+grep -q '构建与测试通过' skills/mdflow/references/step3.md || c10_missing="$c10_missing step3-gate"
+grep -q '构建与测试通过' skills/mdflow/references/step8.md || c10_missing="$c10_missing step8"
+if [ -z "$c10_missing" ]; then pass "C10 提交前验证构建与测试"; else fail "C10 提交前验证约定缺失:$c10_missing"; fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"
