@@ -3,7 +3,7 @@
 ## GUARD
 
 - 前置状态：步骤1 已勾选，Flow Status 步骤2 未勾选
-- 幂等：重入时报告同名覆盖（`round{N}/step2-design-review.md`，轮内覆盖、跨轮写新目录），审查从头执行
+- 幂等：重入时报告同名覆盖（`round{N}/step2-design-review.md`，轮内覆盖、跨轮写新目录），审查从头执行；分片形态见契约「报告清单」
 
 ## ACT
 

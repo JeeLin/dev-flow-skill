@@ -320,6 +320,36 @@ grep -q '未被调用' skills/mdflow/references/step5.md || c12_missing="$c12_mi
 grep -q '断言有效性四类无效形态均已核对' skills/mdflow/references/step5.md || c12_missing="$c12_missing step5-gate"
 if [ -z "$c12_missing" ]; then pass "C12 断言有效性维度已落地"; else fail "C12 断言有效性约定缺失:$c12_missing"; fi
 
+# C13 报告名允许分片后缀且读取一律按前缀（跨项目实测报告文件名分裂的事故类）
+#    事故链：实测消费者仓库报告名分裂为前后端分侧（step5-frontend/backend）、
+#    三段拆分（step7-part1..3）、单步多份（step6-test.md 与 step6-tests.md 并存）
+#    等形态。契约原本只认一个固定文件名，读报告方按名字找，找不到就以为本步零发现
+#    ——报告只是证据但「找不到」被当成了「没有」，是静默假通过。新增分片后缀规则后
+#    必须同时固定「按前缀读取」，否则新规则只会再添一种漏读。本规则零语义断言。
+c13_missing=""
+grep -q '分片后缀（允许）' skills/mdflow/references/contract.md || c13_missing="$c13_missing contract-suffix"
+grep -q '轮次不进文件名' skills/mdflow/references/contract.md || c13_missing="$c13_missing contract-round"
+grep -q '不因文件名差异漏读' skills/mdflow/references/contract.md || c13_missing="$c13_missing contract-prefix"
+grep -q '而判定本步零发现' skills/mdflow/references/contract.md || c13_missing="$c13_missing contract-nozero"
+for i in 2 4 5 6 7; do
+  grep -q '分片形态见契约' "skills/mdflow/references/step$i.md" || c13_missing="$c13_missing step$i"
+done
+if [ -z "$c13_missing" ]; then pass "C13 报告分片后缀与按前缀读取"; else fail "C13 报告名规则缺失:$c13_missing"; fi
+
+# C14 技能侧修正必须回流消费者台账（台账裁决长期停留在过时状态的事故类）
+#    事故链：某消费者 v0.91.0 步骤2 台账仍挂着「缺陷池 bug 未纳入里程碑」且标 ❌ 技能侧，
+#    而该修正早已在技能仓库落地（无同步机制）——后续 session 会照着过期台账重复劳动。
+#    回流只标状态 + 追加注记，不重置已有裁决、不代改 check.sh/AGENTS.md 去向的行。
+c14_missing=""
+grep -q '^### 技能侧修正回流$' skills/mdflow/references/contract.md || c14_missing="$c14_missing contract"
+grep -q '规则名锚点' skills/mdflow/references/contract.md || c14_missing="$c14_missing contract-anchor"
+grep -q '不重置裁决' skills/mdflow/references/contract.md || c14_missing="$c14_missing contract-idempotent"
+grep -q '技能侧无权代改' skills/mdflow/references/contract.md || c14_missing="$c14_missing contract-scope"
+grep -q '见「技能侧修正回流」' skills/mdflow/references/contract.md || c14_missing="$c14_missing contract-xref"
+grep -q '技能侧修正回流' skills/mdflow/references/step8.md || c14_missing="$c14_missing step8"
+grep -q '历史裁决留档' skills/mdflow/references/step8.md || c14_missing="$c14_missing step8-keep"
+if [ -z "$c14_missing" ]; then pass "C14 技能侧修正回流台账"; else fail "C14 台账回流约定缺失:$c14_missing"; fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"
