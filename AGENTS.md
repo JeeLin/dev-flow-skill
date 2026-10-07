@@ -16,7 +16,7 @@
 
 ```bash
 grep -rn "<旧关键词>" skills/ README.md CHANGELOG.md
-./scripts/check.sh   # 改动契约/结构/步骤文件后必须 38 项全绿（A 契约 / B git 基准 / C 结构，含 A9 废弃里程碑机制、C5 沉淀候选三侧齐全、C6 禁用繁体字元、C7 沉淀锚点位置）
+./scripts/check.sh   # 改动契约/结构/步骤文件后必须 39 项全绿（A 契约 / B git 基准 / C 结构，含 A9 废弃里程碑机制、C5 沉淀候选三侧齐全、C6 禁用繁体字元、C7 沉淀锚点位置、C8 缺陷池搬运无损且成对）
 ./scripts/run-scenarios.sh   # 二期状态机场景推演（场景底稿见 scripts/scenarios.md）
 ```
 

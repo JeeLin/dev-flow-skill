@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **缺陷池搬运改为无损直写**（跨项目沉淀回灌，来源：REX 缺陷池消费实测）：缺陷池 bug 原先经 DEVELOPMENT.md
+  「缺陷池 bug」自由文本字段中转，描述列承载的可证伪三要素与 grep 锚点在搬运中压缩丢失——步骤5 审查时已无锚点可定位。
+  改为 `mdflow-planner` **逐条原样写入新里程碑文档 `## Bugs` 表**（状态 ⬜、来源「缺陷池」、描述列不压缩），
+  DEVELOPMENT.md 只记 bug 数与标题清单；`step1.md` 改为只读该表、不重复搬运，若表内无缺陷池来源行则停止并报告。
+- **缺陷池消费加门禁 C8**：`planner` 承诺的「全部纳入 + 必须删行」此前无校验，漏写即静默丢 bug。新增 C8 断言
+  写入/删行成对（写入行数 == 缺陷池条目数）、描述列原样搬运、步骤1 只读不改；5 个注入探针验证该红时红。
+  门禁 38 → 39 项。
+
 ### Added
 
 - **mdflow 技能集**（现为唯一技能集）：

@@ -242,6 +242,20 @@ else
   fail "C7 沉淀锚点被形近字替换: $c7_hits"
 fi
 
+# C8 缺陷池搬运必须无损且成对（planner 丢 bug / 只删不写的事故类，与 B/C 类同源）
+#    事故链：缺陷池 bug 曾经只经 DEVELOPMENT.md 一行自由文本中转，描述列（可证伪三要素 +
+#    grep 锚点）在搬运中压缩丢失，步骤5 审查无锚点可定位；且 planner 承诺「全部纳入 +
+#    必须删行」却无闸门，漏写即静默丢 bug。本规则只断言契约文本仍在位（零语义断言）。
+c8_missing=""
+grep -q '缺陷池消费' skills/mdflow-planner/SKILL.md || c8_missing="$c8_missing planner"
+grep -q '描述列原样搬运' skills/mdflow-planner/SKILL.md || c8_missing="$c8_missing planner-desc"
+grep -q '写入行数 == 缺陷池条目数' skills/mdflow-planner/SKILL.md || c8_missing="$c8_missing planner-pair"
+grep -q '只读不改' skills/mdflow/references/step1.md || c8_missing="$c8_missing step1"
+grep -q '不自行补写' skills/mdflow/references/step1.md || c8_missing="$c8_missing step1-stop"
+grep -q '写入行数 == 缺陷池条目数' skills/mdflow/SKILL.md || c8_missing="$c8_missing skill"
+grep -q '缺陷池搬运必须无损且成对' scripts/check.sh || c8_missing="$c8_missing self"
+if [ -z "$c8_missing" ]; then pass "C8 缺陷池搬运无损且成对"; else fail "C8 缺陷池搬运约定缺失:$c8_missing"; fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"
