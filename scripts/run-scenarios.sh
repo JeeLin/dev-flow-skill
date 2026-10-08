@@ -89,8 +89,31 @@ dispatch() {
   echo "步骤1"
 }
 
+
+# ----标记识别推演（与契约「里程碑状态标记」逐分支对应）----
+# 参数：marker_cur marker_blank marker_done marker_foreign
+# 顺序即契约分支顺序：非规范词与多命中优先于「无标记但无 🔄」，
+# 因为前者是「词汇不认识」，后者只是「标记缺失」，混判会把两类事故压成一条。
+dispatch_marker() {
+  local cur="$1" blank="$2" done="$3" foreign="$4"
+  # 非规范状态词 → 标记未维护，不做别名兼容
+  if [ "$foreign" -gt 0 ]; then echo "停止报告"; return; fi
+  # 🔄 当前 多命中 → 状态冲突
+  if [ "$cur" -ge 2 ]; then echo "停止报告"; return; fi
+  # 命中 1 行 → 正常
+  if [ "$cur" -eq 1 ]; then echo "继续"; return; fi
+  # 无 🔄 且有未开始条目 → 标记未维护，不自行提升
+  if [ "$blank" -gt 0 ]; then echo "停止报告"; return; fi
+  # 无 🔄 且无未开始条目：须全部为 ✅ 已完成，否则是「条目存在但状态不可识别」
+  if [ "$done" -gt 0 ] || [ "$((cur + blank + done + foreign))" -eq 0 ]; then
+    echo "调planner"; return
+  fi
+  echo "停止报告"; return
+}
+
 # ---- 驱动：从 SNN.md 解析每个场景断言----
 current="" flow="" round="" bugs="" ab="" has=""
+mcur="" mblank="" mdone="" mforeign=""
 
 # 跳过文件首的 markdown 标题/说明，直到第一个 ### S 场景
 while IFS= read -r line || [ -n "$line" ]; do
@@ -98,12 +121,29 @@ while IFS= read -r line || [ -n "$line" ]; do
     "### S"*)
       current="${line#\### }"
       flow=""; round=""; bugs=""; ab=""; has=""
+      mcur=""; mblank=""; mdone=""; mforeign=""
       ;;
     flow_status=*)    flow="${line#flow_status=}" ;;
     review_round=*)   round="${line#review_round=}" ;;
     bugs_square=*)    bugs="${line#bugs_square=}" ;;
     abandoned=*)      ab="${line#abandoned=}" ;;
     has_milestone=*)  has="${line#has_milestone=}" ;;
+    marker_cur=*)      mcur="${line#marker_cur=}" ;;
+    marker_blank=*)    mblank="${line#marker_blank=}" ;;
+    marker_done=*)     mdone="${line#marker_done=}" ;;
+    marker_foreign=*)  mforeign="${line#marker_foreign=}" ;;
+    marker_expected=*)
+      [ -z "$current" ] && continue
+      mexp="${line#marker_expected=}"
+      mgot=$(dispatch_marker "${mcur:-0}" "${mblank:-0}" "${mdone:-0}" "${mforeign:-0}")
+      mid="${current%%｜*}"
+      if [ "$mgot" = "$mexp" ]; then
+        pass "$mid → $mgot"
+      else
+        fail "$mid → 实际 $mgot，期望 $mexp"
+      fi
+      current=""
+      ;;
     expected=*)
       [ -z "$current" ] && continue
       expected="${line#expected=}"

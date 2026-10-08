@@ -11,6 +11,16 @@
 - `has_milestone` — 是否存在里程碑文档
 - `expected` — 状态机应分发到的步骤
 
+标记识别场景另用 `marker_*` 字段（契约「里程碑状态标记」的五分支识别规则）：
+
+- `marker_cur` — DEVELOPMENT.md 中标记 `🔄 当前` 的条目数
+- `marker_blank` — 无标记（未开始）条目数
+- `marker_done` — 标记 `✅ 已完成` 的条目数
+- `marker_foreign` — 非规范状态词条目数（消费者自写 `进行中` / `In Progress` 等）
+- `marker_expected` — 识别判定：`继续` / `调planner` / `停止报告`
+
+> 标记识别场景只验「识别判定」，不验状态机分发：两者是不同层，`dispatch` 与 `dispatch_marker` 分开。
+
 > S23-S25 为子技能输入输出场景（维度来源、报告文件名、缺陷池），不属状态机推演，无夹具。
 
 ### S01｜无里程碑文档；DEVELOPMENT.md 无下一个里程碑 → 先调 mdflow-planner 再进步骤1
@@ -196,3 +206,43 @@ bugs_square=0
 abandoned=true
 has_milestone=true
 expected=步骤1
+
+
+---
+
+## H 组：里程碑标记识别（契约「里程碑状态标记」）
+
+### S28｜DEVELOPMENT.md 有 1 条 `🔄 当前`、2 条无标记 → 正常识别，继续
+marker_cur=1
+marker_blank=2
+marker_done=3
+marker_foreign=0
+marker_expected=继续
+
+### S29｜全部条目均 `✅ 已完成`（无待做）→ 未定义下一个里程碑，调 planner 规划
+marker_cur=0
+marker_blank=0
+marker_done=8
+marker_foreign=0
+marker_expected=调planner
+
+### S30｜有空条目但无 `🔄 当前`（标记未维护）→ 停止并报告，不自行提升
+marker_cur=0
+marker_blank=2
+marker_done=3
+marker_foreign=0
+marker_expected=停止报告
+
+### S31｜出现非规范状态词 `进行中` → 停止并报告，不做别名兼容
+marker_cur=0
+marker_blank=1
+marker_done=3
+marker_foreign=1
+marker_expected=停止报告
+
+### S32｜`🔄 当前` 命中 2 行（状态冲突）→ 停止并报告
+marker_cur=2
+marker_blank=1
+marker_done=3
+marker_foreign=0
+marker_expected=停止报告
