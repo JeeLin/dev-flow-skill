@@ -364,6 +364,25 @@ grep -q '不可漏写 .AGENTS.md. 中定义的任一非空门检项' skills/mdfl
 grep -q '不可漏写、不可只写' skills/mdflow/references/step6.md || c15_missing="$c15_missing step6-gate"
 if [ -z "$c15_missing" ]; then pass "C15 step6 质量门禁不可漏写"; else fail "C15 step6 门禁约定缺失:$c15_missing"; fi
 
+# C17 里程碑状态标记词汇单一来源（识别漂移类事故）
+#    事故链：里程碑标记曾在三份文档各自演化——planner 声明 `← 新增（下一步）` 是步骤1 的
+#    「唯一依据」，step1 却同时接受 `← 新增（下一步）` 与 `🔄 当前` 两种词；两个词标的是
+#    同一行（「当前 == 下一个待做」），属纯冗余，却制造了新的漂移面。实测消费者后果：
+#    某项目 8 条未完成里程碑用自定义词表（`进行中` / `待规划`），与任一 canonical 词都不匹配，
+#    步骤1 因此无法识别「下一个里程碑」，误判为「未规划」而误触发 planner。
+#    修复：词汇收敛为三态 `✅ 已完成` / `🔄 当前` / 无标记，「下一个」改为由步骤8 完成时
+#    提升第一个无标记条目**派生**，不再预留标记；步骤1 对「无 🔄 当前 / 自定义词 / 多命中」
+#    一律停止并报告，不做别名兼容（别名将掩盖标记未维护的事实）。
+#    本规则只断言三态词汇在三份文档一致、旧标记已清零（零语义断言）。
+c17_missing=""
+grep -q '状态标记：✅ 已完成 / 🔄 当前 / 无标记（未开始）' skills/mdflow-planner/SKILL.md || c17_missing="$c17_missing planner-legend"
+grep -q '不设「未来预留」标记' skills/mdflow-planner/SKILL.md || c17_missing="$c17_missing planner-no-reserve"
+grep -q '下一个里程碑 = 标记 `🔄 当前` 的条目' skills/mdflow/references/step1.md || c17_missing="$c17_missing step1-recognition"
+grep -q '不做别名兼容' skills/mdflow/references/step1.md || c17_missing="$c17_missing step1-no-alias"
+grep -q '第一个无标记.*的条目提升为 `🔄 当前`' skills/mdflow/references/step8.md || c17_missing="$c17_missing step8-promote"
+if grep -rq '← 新增（下一步）' skills/; then c17_missing="$c17_missing stale-marker"; fi
+if [ -z "$c17_missing" ]; then pass "C17 里程碑状态标记词汇单一来源"; else fail "C17 里程碑标记约定异常:$c17_missing"; fi
+
 # C16 文档与代码同 commit 的同步义务（文档长期滞后于代码的事故类）
 #    事故链：跨项目扫描实测——某项目加密文档写 `check_keys.sh` 而仓库无此文件、
 #    测试文档写 `github/workflows/ci.yml` 而仓库无 .github/，读者照抄即失败；
