@@ -364,6 +364,29 @@ grep -q '不可漏写 .AGENTS.md. 中定义的任一非空门检项' skills/mdfl
 grep -q '不可漏写、不可只写' skills/mdflow/references/step6.md || c15_missing="$c15_missing step6-gate"
 if [ -z "$c15_missing" ]; then pass "C15 step6 质量门禁不可漏写"; else fail "C15 step6 门禁约定缺失:$c15_missing"; fi
 
+# C16 文档与代码同 commit 的同步义务（文档长期滞后于代码的事故类）
+#    事故链：跨项目扫描实测——某项目加密文档写 `check_keys.sh` 而仓库无此文件、
+#    测试文档写 `github/workflows/ci.yml` 而仓库无 .github/，读者照抄即失败；
+#    另一项目 67 处文档引用路径已不存在（改名/删除后的历史残留）。
+#    根因是文档更新与功能提交被拆开、「下个里程碑再补」，故把同步义务落进契约三侧：
+#    步骤1 声明 → 步骤3 同 commit → 步骤8 提交前核对引用有效性。
+#    本规则只断言三侧约定文本仍在位（零语义断言）。
+c16_missing=""
+grep -q '^## 文档同步$' skills/mdflow/references/contract.md || c16_missing="$c16_missing contract-section"
+grep -q '开发者完成功能时同步更新文档' skills/mdflow/references/contract.md || c16_missing="$c16_missing contract-principle"
+grep -q '不得拆成两个 commit' skills/mdflow/references/contract.md || c16_missing="$c16_missing contract-commit"
+grep -q '不允许带着失效引用提交' skills/mdflow/references/contract.md || c16_missing="$c16_missing contract-gate"
+grep -q '调研笔记引用外部仓库源码' skills/mdflow/references/contract.md || c16_missing="$c16_missing contract-exempt"
+grep -q '本子任务将同步更新哪些对外文档' skills/mdflow/references/template.md || c16_missing="$c16_missing template-field"
+grep -q '校验规则的唯一源为契约「文档同步」' skills/mdflow/references/template.md || c16_missing="$c16_missing template-note"
+grep -q '文档改动声明.*契约「文档同步」' skills/mdflow/references/step1.md || c16_missing="$c16_missing step1-act"
+grep -q '「文档改动」字段已声明且非空' skills/mdflow/references/step1.md || c16_missing="$c16_missing step1-gate"
+grep -q '与功能改动同一 commit 提交' skills/mdflow/references/step3.md || c16_missing="$c16_missing step3-act"
+grep -q '文档已与代码同 commit 提交' skills/mdflow/references/step3.md || c16_missing="$c16_missing step3-gate"
+grep -q '不允许带着失效引用提交' skills/mdflow/references/step8.md || c16_missing="$c16_missing step8-act"
+grep -q '文档与代码一致.*契约「文档同步」' skills/mdflow/references/step8.md || c16_missing="$c16_missing step8-gate"
+if [ -z "$c16_missing" ]; then pass "C16 文档与代码同 commit 同步义务"; else fail "C16 文档同步约定缺失:$c16_missing"; fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"
