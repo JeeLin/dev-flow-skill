@@ -172,8 +172,14 @@ L1 只能确认「路径在不在」，**不能确认「文档说的机制与代
 - 文档根：读 `AGENTS.md` 找文档目录约定（默认 `docs/`），未定义则用 `docs/`
 - 产品类型：按依赖清单与分发文件探测（有无 Dockerfile/compose → `service`；有无 CLI 框架 + TUI 库 → `cli`；多可执行文件 + 客户端-服务端语义 → `platform`）；**判不准时问用户**
 - 远端：`git remote get-url origin`，推导 Wiki URL（`git@github.com:OWNER/REPO.git` → `https://github.com/OWNER/REPO.wiki.git`）
-- 凭证：探测 `FEISHU_APP_ID`/`FEISHU_APP_SECRET`；`GITHUB_TOKEN`（可选，公开仓库免 token）
-- **凭证缺失不终止，按三级降级**：① 本地已有可推送飞书的技能（`~/.config/opencode/skills/` 下任一声明能写飞书文档的技能）→ **委派给它**，由它持有凭证与通道，本技能只交付 Markdown 与目标结构；② 无此技能但用户在场 → 问用户要凭证或指定技能，**不自行索要密钥入 env**；③ 都没有 → 标「跳过（无可用推送通道）」，继续 GitHub Wiki，**不报错、不阻断**
+- 凭证：**四通道探测，逐级降级，不终止**——见第 6 步的通道优先级表。探测要同时查 CLI 认证态与 env：
+  ```bash
+  lark-cli auth status 2>/dev/null | grep -q '"available": *true' && echo CLI_READY
+  env | grep -qE '^FEISHU_(APP_ID|APP_SECRET|TENANT_ACCESS_TOKEN)' && echo ENV_READY
+  ```
+  ⚠ **只查 env 会漏判**：本地 CLI 可能已装且已登录，凭证存在它自己的配置里（如 `~/.lark-cli/config.json`）而非环境变量。实测踩过——按 env 判定「本机无飞书推送能力」并准备手写 HTTP 通道，实际本地 CLI 早已 ready。
+- `GITHUB_TOKEN`（可选，公开仓库免 token）
+- 任一通道可用即继续；全不可用则标「跳过（无可用推送通道）」，**不报错、不阻断**
 
 ### 2. 结构校验
 
@@ -225,7 +231,37 @@ git clone --depth 1 "$wiki_url" "$workdir"
 
 ### 6. 发布：飞书
 
-**先委派，后自建**：本地已有可推送飞书的技能时，**优先委派**——把 Markdown 正文 + 目标目录结构交给它，由它负责凭证、鉴权与写入。本技能不重复实现鉴权，也不把密钥读进自己的上下文。委派时须交付：
+**通道优先级：本地 CLI > 本地技能 > 自建 HTTP > 跳过。** 探测到哪个用哪个，不要因为「文档里写了要手写转换器」就跳过更高优先级的现成通道。
+
+| 优先级 | 通道 | 探测 | 写入命令 |
+|---|---|---|---|
+| 1 | **本地 CLI 工具** | `lark-cli auth status` 的 `available: true` | `lark-cli markdown +create --file X.md --name "标题.md"` |
+| 2 | 本地可推送飞书的技能 | skills 目录中声明能写飞书文档的技能 | 委派，见下 |
+| 3 | 自建 HTTP 通道 | `FEISHU_APP_ID`+`FEISHU_APP_SECRET`（或 `TENANT_ACCESS_TOKEN`）在 env 中 | `urllib` 直调 docx API |
+| 4 | 跳过 | 以上皆无 | 标「跳过（无可用推送通道）」，**不报错、不阻断** |
+
+**优先级 1 的 CLI 通道**（有则必用，不要手写转换器）：
+
+```bash
+# 首次先读 CLI 自带领域指南
+lark-cli skills read lark-markdown
+
+# 建文档（--file 直接吃本地 Markdown，原生保真）
+lark-cli markdown +create --file path/to/doc.md --name "标题.md" \
+  [--folder-token <token> | --wiki-token <token>]
+
+# 其余动作
+lark-cli markdown +overwrite   # 覆盖已存在文档
+lark-cli markdown +patch       # 局部改（fetch-local-replace-overwrite）
+lark-cli markdown +diff        # 比对远端与本地差异
+```
+
+- `--folder-token` / `--wiki-token` / 都不给三者互斥；都不给则落到调用者 Drive 根目录
+- 两个 token 均接受完整 Lark URL，会自动归一化
+- 写入是 `write` 级风险（**非** `high-risk-write`），可直接执行；批量推多篇前**先 `--dry-run` 验一篇**，再全量
+- 领域命令清单：`lark-cli docs --help`（docx 原生）、`lark-cli markdown --help`（Drive 原生 Markdown，**保真更好，优先用这个**）
+
+**优先级 2 的技能委派**：把内容交给它，凭证与通道由它持有。本技能不重复实现鉴权，也不把密钥读进自己的上下文。交付清单：
 
 | 交付项 | 内容 |
 |---|---|
@@ -233,7 +269,7 @@ git clone --depth 1 "$wiki_url" "$workdir"
 | 目标结构 | 文档根、每篇的分类归属、页面标题层级 |
 | 映射约定 | 与 GitHub Wiki **同一套**文件名映射，避免两处命名分叉 |
 
-**没有可委派技能时**才自建通道，凭证 `FEISHU_APP_ID` + `FEISHU_APP_SECRET`（或 `FEISHU_TENANT_ACCESS_TOKEN`）：
+**优先级 3 的自建通道**（前两者都无才走），用 stdlib `urllib`，不要为一次推送引入依赖：
 
 ```
 POST /open-apis/auth/v3/tenant_access_token/internal   换 token
@@ -241,11 +277,7 @@ POST /open-apis/docx/v1/documents                        建文档
 POST /open-apis/docx/v1/documents/{id}/blocks            写块
 ```
 
-无 SDK 时用 stdlib `urllib` 即可，不要为一次推送引入依赖。
-
-**Markdown → block 转换（最小可用）**：支持标题、段落、有序/无序列表、代码块；表格降级为纯文本行。**不支持的语法原样保留为段落并在报告中标记**，绝不静默丢内容。
-
-> 已知取舍：表格降级损失列对齐。可选改进：调飞书表格块 API 精确还原。当前先保证「不丢内容」。
+> 只有走优先级 3 时才需要手写 Markdown → block 转换（支持标题、段落、有序/无序列表、代码块；表格降级为纯文本行，不支持的语法原样保留为段落并在报告中标记，绝不静默丢内容）。走优先级 1/2 时**不适用**——CLI 与技能各自处理保真。
 
 ## 参数
 
@@ -288,7 +320,7 @@ POST /open-apis/docx/v1/documents/{id}/blocks            写块
   | 租户隔离依赖某环境变量 | 未找到 | ★ 漂移 |
 
 [发布判定] 不发布 6 份（实现细节 5 份 + 缺陷池 1 份）
-[发布] Wiki: 待确认推送 5 个文件；飞书: 跳过（未配置 FEISHU_APP_ID）
+[发布] Wiki: 待确认推送 5 个文件；飞书: 通道 1 CLI（lark-cli 已 ready）→ 目标根目录，--dry-run 1 篇后全量
 
 发布已阻断：2 处漂移待裁决。改文档 / 改代码 / 标注废弃，或 --force 跳过。
 ```

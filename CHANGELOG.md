@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **`docs-publish` 飞书通道改为四级优先（CLI > 技能 > 自建 > 跳过）**（事故类：上一条把降级写成
+  「委派技能 → 否则自建 HTTP」，方向错了。实测本机已有 `lark-cli` v1.0.97 且 `auth status` 返回
+  `available: true`（`brand: feishu`、bot identity ready），而按 env 探测却判定「无飞书推送能力」并准备
+  手写 HTTP 通道——**只查 `FEISHU_*` env 会漏判本地 CLI 已登录的情况**，凭证存在 CLI 自己的配置里而非
+  环境变量）：GUARD 改为四通道探测（CLI 认证态 + env 双查），第 6 步给出四级优先表与
+  `lark-cli markdown +create/overwrite/patch/diff` 命令（含 `--folder-token`/`--wiki-token` 互斥关系、
+  先 `--dry-run` 一篇再全量）；手写 Markdown→block 转换器**降为仅第 3 级适用**——CLI 与技能各自处理
+  保真，先查现成通道再考虑自己写。
 - **`docs-publish` 飞书推送支持委派本地技能**：凭证缺失时不再直接跳过，按三级降级——本地已有可推送
   飞书的技能则**委派**（交付 Markdown 正文 + 目标结构 + 与 Wiki 同一套命名映射，凭证与通道由对方持有，
   本技能不重复实现鉴权、不把密钥读进自己上下文）→ 无技能则问用户 → 都没有才标「跳过（无可用推送通道）」
