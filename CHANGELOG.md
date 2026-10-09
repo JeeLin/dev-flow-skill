@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **`docs-publish` 飞书推送支持委派本地技能**：凭证缺失时不再直接跳过，按三级降级——本地已有可推送
+  飞书的技能则**委派**（交付 Markdown 正文 + 目标结构 + 与 Wiki 同一套命名映射，凭证与通道由对方持有，
+  本技能不重复实现鉴权、不把密钥读进自己上下文）→ 无技能则问用户 → 都没有才标「跳过（无可用推送通道）」
+  且不阻断。无 SDK 时用 stdlib `urllib`，不为一次推送引入依赖。
+- **`docs-publish` 补两类防误伤豁免**（本次实跑踩到的真实假红）：**runbook 里「教读者创建」的脚本**
+  （代码块内带 shebang 则豁免——文档声称的是「脚本该长什么样」，不是「仓库里有」；某项目加密 runbook 的
+  两个自检脚本仓库内确实不存在，但原文是给出脚本内容让人复制到本地跑）、**backtick 内「路径 + 参数」
+  拼接**（`` `scripts/check-coverage.sh 98` `` 含空格须先切分再查存在性；同次实跑该文件存在却因整串
+  判不存在而假红）。假红比漏红更贵——诱导人去「修」没坏的文档，且会让人不信任整套复核。
 
 - **契约「文档同步」（Docs-as-Code）**（跨项目实测：某项目加密文档写 `check_keys.sh` 而仓库无此
   文件、测试文档写 `github/workflows/ci.yml` 而仓库无 `.github/`，读者照抄即失败；另一项目 67 处

@@ -136,6 +136,10 @@ How-to 与 Tutorial 里每个操作段落必须四要素齐全，缺任一即标
 - **外部仓库引用** —— 调研笔记引用其他项目的源码路径，天然不在本仓库
 - **历史记录** —— `DEVELOPMENT.md` 里程碑描述、`CHANGELOG` 记录的是「当时做过」，文件可能已改名或删除
 - **示例与占位值** —— 明显是示例的值（`YOUR_*` / `EXAMPLE_*` / `localhost`）
+- **runbook 里「教读者创建」的脚本** —— 文档用 ` ```bash ` 代码块**给出脚本内容**（运维手册常见写法：把脚本贴给读者复制到本地跑），文档声称的是「脚本该长什么样」，不是「仓库里有这个文件」。判据：**该 token 出现在代码块内且带 shebang** → 豁免；出现在正文声称「运行 `xxx.sh`」→ 才算漂移。
+  > 实测踩过：某项目加密 runbook 引用 `check_keys.sh`、`key_version_stats.sh`，两个文件仓库里都不存在，一度判为漂移。核实后确认前者是代码块里给出完整脚本内容、后者原文写着「建议把它落到本地」——**是教创建，不是声称存在**。假红比漏红更贵：它让人去「修」根本没坏的文档。
+- **backtick 内「路径 + 参数」拼接** —— `` `scripts/check-coverage.sh 98` `` 是一个反引号里塞了路径和阈值两个 token，**不能整串当路径去 `exists()`**。判据：含空格的引用**先按空白切分**，只对疑似路径的那一段做存在性检查。
+  > 同一次实测踩过：`scripts/check-coverage.sh` 文件确实存在（868B 可执行），却因整串判不存在而假红。
 
 ## L2 复核：读代码（核心）
 
@@ -169,7 +173,7 @@ L1 只能确认「路径在不在」，**不能确认「文档说的机制与代
 - 产品类型：按依赖清单与分发文件探测（有无 Dockerfile/compose → `service`；有无 CLI 框架 + TUI 库 → `cli`；多可执行文件 + 客户端-服务端语义 → `platform`）；**判不准时问用户**
 - 远端：`git remote get-url origin`，推导 Wiki URL（`git@github.com:OWNER/REPO.git` → `https://github.com/OWNER/REPO.wiki.git`）
 - 凭证：探测 `FEISHU_APP_ID`/`FEISHU_APP_SECRET`；`GITHUB_TOKEN`（可选，公开仓库免 token）
-- **凭证缺失不报错**：飞书标「跳过（未配置凭证）」，继续 GitHub Wiki
+- **凭证缺失不终止，按三级降级**：① 本地已有可推送飞书的技能（`~/.config/opencode/skills/` 下任一声明能写飞书文档的技能）→ **委派给它**，由它持有凭证与通道，本技能只交付 Markdown 与目标结构；② 无此技能但用户在场 → 问用户要凭证或指定技能，**不自行索要密钥入 env**；③ 都没有 → 标「跳过（无可用推送通道）」，继续 GitHub Wiki，**不报错、不阻断**
 
 ### 2. 结构校验
 
@@ -221,13 +225,23 @@ git clone --depth 1 "$wiki_url" "$workdir"
 
 ### 6. 发布：飞书
 
-凭证：`FEISHU_APP_ID` + `FEISHU_APP_SECRET`（或 `FEISHU_TENANT_ACCESS_TOKEN`）。
+**先委派，后自建**：本地已有可推送飞书的技能时，**优先委派**——把 Markdown 正文 + 目标目录结构交给它，由它负责凭证、鉴权与写入。本技能不重复实现鉴权，也不把密钥读进自己的上下文。委派时须交付：
+
+| 交付项 | 内容 |
+|---|---|
+| 正文 | 按 Diátaxis 分类好的 Markdown（未经改写的原文） |
+| 目标结构 | 文档根、每篇的分类归属、页面标题层级 |
+| 映射约定 | 与 GitHub Wiki **同一套**文件名映射，避免两处命名分叉 |
+
+**没有可委派技能时**才自建通道，凭证 `FEISHU_APP_ID` + `FEISHU_APP_SECRET`（或 `FEISHU_TENANT_ACCESS_TOKEN`）：
 
 ```
 POST /open-apis/auth/v3/tenant_access_token/internal   换 token
 POST /open-apis/docx/v1/documents                        建文档
 POST /open-apis/docx/v1/documents/{id}/blocks            写块
 ```
+
+无 SDK 时用 stdlib `urllib` 即可，不要为一次推送引入依赖。
 
 **Markdown → block 转换（最小可用）**：支持标题、段落、有序/无序列表、代码块；表格降级为纯文本行。**不支持的语法原样保留为段落并在报告中标记**，绝不静默丢内容。
 
