@@ -62,19 +62,22 @@ Retry at most once. 推送失败必须如实报告，不得静默吞掉。
 
 ### 收件人从哪来（部署方必须配其一）
 
-收件人**不写死**（本仓库公开，写死 open_id 等于公开个人飞书账号标识）。按优先级解析：
+收件人**不写死在技能里**——本技能要分发给不同使用者，个人 open_id 属于**部署方**的配置；
+放进技能会让所有使用者都收到同一条消息。按优先级解析：
 
-1. `--user-id` / `--chat-id` 参数
+1. `--user-id` / `--chat-id` 参数（**推荐**：由调用方即部署方自己的定时任务传入）
 2. `FEISHU_PUSH_USER_ID` / `FEISHU_PUSH_CHAT_ID` 环境变量
-3. 技能脚本同目录（或上一级）的 `feishu_push.toml`，格式见
-   `skills/_shared/config.example.toml`
+3. 调用方自备的 `feishu_push.toml`，格式见 `skills/_shared/config.example.toml`
 
 三处都没有时脚本以退出码 2 明确报错，**不会静默失败**。
 
-⚠️ **agent 运行时的环境变量经常是空的**，只配环境变量的部署会在定时任务里
-逐次失败——所以生产部署应当写 `feishu_push.toml`（该文件名已被 `.gitignore` 排除）。
-凭证在 lark-cli 自身配置（`/root/.lark-cli/config.json`，`0600`），
-不在本技能或脚本里。
+**推荐部署方式**：把收件人写进**你自己的定时任务（autopilot）描述**，执行时以
+`--user-id` 显式传入。技能保持通用、不含任何个人配置，配置随定时任务留存，
+也不会因 `skill refresh` 而丢失。
+
+⚠️ **agent 运行时的环境变量经常是空的**，只配环境变量的部署会在定时任务里逐次失败。
+
+凭证在 lark-cli 自身配置（`0600`），不在本技能或脚本里。
 
 ## himalaya CLI (optional, for manual mail ops)
 
