@@ -411,6 +411,30 @@ grep -q '不允许带着失效引用提交' skills/mdflow/references/step8.md ||
 grep -q '文档与代码一致.*契约「文档同步」' skills/mdflow/references/step8.md || c16_missing="$c16_missing step8-gate"
 if [ -z "$c16_missing" ]; then pass "C16 文档与代码同 commit 同步义务"; else fail "C16 文档同步约定缺失:$c16_missing"; fi
 
+# C18 平台投影只做只读外壳，文档仍是唯一状态源（决策漂移/过度迁移的事故类）
+#    事故链：曾评估「把里程碑整体迁移到平台任务」（子任务/Bugs 表逐条变任务卡、
+#    用平台状态驱动状态机）。已否决——① 技能支持 gitignore 纯本地单机（SKILL.md
+#    「Gitignore 处理」），绑平台是不可逆的可移植性降级；② 平台状态写有副作用
+#    （触发执行者、唤醒上级、失败自动回退），推进一步可能误触发调度；
+#    ③ 沉淀建议表头解析、报告前缀读取、缺陷池行数配对等 grep 锚点都长在 Markdown 里，
+#    搬到任务描述后整条「发现→规则沉淀」管线断裂。
+#    本规则只断言归属与声明文本在位（零语义断言）：platform-sync.md 必须存在、
+#    SKILL.md 必须声明平台不参与状态判断、必须声明 Bugs 表不逐条变任务、
+#    必须声明不用平台状态驱动 GUARD、必须声明投影失败静默跳过。分层回灌（AGENTS.md）：
+#    执行期错误写进 platform-sync.md（使用侧每次投影必读），名称/结构漂移才补本规则。
+c18_missing=""
+[ -f skills/mdflow/references/platform-sync.md ] || c18_missing="$c18_missing file"
+grep -q '^## 为什么不做整体迁移' skills/mdflow/references/platform-sync.md || c18_missing="$c18_missing rationale"
+grep -q '平台任务不参与状态判断' skills/mdflow/SKILL.md || c18_missing="$c18_missing skill-guard"
+grep -q 'references/platform-sync.md' skills/mdflow/SKILL.md || c18_missing="$c18_missing skill-ref"
+grep -q '不把 Bugs 表逐条变成平台任务' skills/mdflow/references/platform-sync.md || c18_missing="$c18_missing no-bugs"
+grep -q '不把「依赖」字段机械翻译成层级分组' skills/mdflow/references/platform-sync.md || c18_missing="$c18_missing no-stage"
+grep -q '不用平台状态驱动 GUARD' skills/mdflow/references/platform-sync.md || c18_missing="$c18_missing no-drive"
+grep -q '静默跳过、不阻塞' skills/mdflow/references/platform-sync.md || c18_missing="$c18_missing no-block"
+grep -q '平台投影' skills/mdflow/references/step1.md || c18_missing="$c18_missing step1"
+grep -q '平台投影' skills/mdflow/references/step8.md || c18_missing="$c18_missing step8"
+if [ -z "$c18_missing" ]; then pass "C18 平台投影只读外壳与文档唯一状态源"; else fail "C18 平台投影约定缺失:$c18_missing"; fi
+
 # ---------- 汇总 ----------
 
 printf '\n共 %d 项，失败 %d 项\n' "$TOTAL" "$FAIL"

@@ -53,6 +53,7 @@
    - **发布收尾**：版本号 {旧→新}、CHANGELOG 新版本条目、DEVELOPMENT.md 标记推进结果
 
    （汇报先于勾选：输出被中断时步骤8 保持未勾选，下次调用自然重入本步骤补发，完全依赖文档状态、不依赖对话记忆）
+   - **平台投影**（可选）：项目已接入任务平台时，把汇报正文作为一条评论发布并把父任务置为完成态，见 `references/platform-sync.md`。汇报的**数据来源仍是里程碑文档、Bugs 表与 git 记录**，平台评论只是发布通道、不是验收证据；平台不可用则跳过、不阻塞本步
 7. 勾选 Flow Status 步骤8
 8. 提交变更到 git（GUARD：`git status` 无待提交则跳过）：
    - `git check-ignore -q {milestone-dir}` 检测里程碑目录是否被 gitignore
