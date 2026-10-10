@@ -6,16 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **`email-analysis` / `tech-briefing` 的飞书推送在部署后会整体失效（两个独立致命缺陷，均已实测复现）**：
+  - **转发壳引用不到共享实现**：上一版让技能内脚本用 `importlib` 按相对路径加载
+    `skills/_shared/feishu_push.py`。守护进程只物化**技能自身**的文件
+    （`.opencode/skills/<技能名>/…`），`skills/_shared/` 不属于任何技能，永远不会出现在
+    运行目录里——实测物化后调用即报「缺少共享实现」并退出码 2，定时任务将完全发不出消息。
+    改为**自足副本**：源码唯一一份留在 `skills/_shared/`，各技能目录下的副本由新增的
+    `scripts/sync_feishu_push.py` 生成（`--check` 可判漂移，退出码 1）。
+    这同时解掉了「两份相同文件迟早各自漂移」的原始动机：漂移由生成器与 `--check` 约束，
+    而不是靠运行时引用。
+  - **收件人只认环境变量**：上一版为避免在公开仓库写死 open_id，改为只从
+    `FEISHU_PUSH_USER_ID` / `FEISHU_PUSH_CHAT_ID` 取值。但 **agent 运行时的环境变量通常是空的**
+    （实测本 agent 两者皆空），定时任务按文档调用会直接 `no recipient` 退出码 2——
+    正是「不静默失败」变成了「稳定失败」。新增技能内 `feishu_push.toml` 作为第三优先级
+    （`--user-id/--chat-id` 参数 > 环境变量 > `feishu_push.toml`），示例见
+    `skills/_shared/config.example.toml`，真实配置文件由 `.gitignore` 排除。
+    仍**不写死**任何 open_id。
+  - `tech-briefing/SKILL.md` 此前完全没有推送章节（现网靠 agent instructions 兜着），
+    独立安装该技能时无从得知脚本用法，已补上。
+
 ### Added
 - **`email-analysis` 技能 + 共享飞书推送脚本 `skills/_shared/feishu_push.py`**：新增技能
   `skills/email-analysis/`（163.com 未读邮件定时分析），并抽出可复用推送实现
-  `skills/_shared/feishu_push.py`。`email-analysis` 与 `tech-briefing` 各自在
-  `scripts/feishu_push.py` 保留一个转发壳，按 `__file__` 相对路径加载共享实现——
-  不用软链（git 检出/归档/物化易断链，症状是裸 traceback），也不用再导出
-  （物化到运行目录后 `sys.path` 未必含 `skills/`，反而多一层失败模式）。共享文件缺失时
-  壳显式报错并以退出码 2 结束，不静默降级。**收件人不写死**：本仓库公开，写死 open_id
-  等于公开个人飞书账号标识，改由 `FEISHU_PUSH_USER_ID` / `FEISHU_PUSH_CHAT_ID` 或
-  `--user-id` / `--chat-id` 指定，两者皆无时报错退出。
+  `skills/_shared/feishu_push.py`。**收件人不写死**：本仓库公开，写死 open_id
+  等于公开个人飞书账号标识，改由参数 / 环境变量 / 技能内 `feishu_push.toml` 指定，
+  三者皆无时报错退出（码 2）。
 - **`docs-publish` 飞书通道改为四级优先（CLI > 技能 > 自建 > 跳过）**（事故类：上一条把降级写成
   「委派技能 → 否则自建 HTTP」，方向错了。实测本机已有 `lark-cli` v1.0.97 且 `auth status` 返回
   `available: true`（`brand: feishu`、bot identity ready），而按 env 探测却判定「无飞书推送能力」并准备

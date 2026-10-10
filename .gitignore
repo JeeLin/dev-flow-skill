@@ -13,3 +13,9 @@ node_modules/
 Thumbs.db
 
 .mnemon
+
+# 本机收件人配置（含飞书 open_id / chat_id，公开仓库绝不能提交）
+feishu_push.toml
+skills/**/feishu_push.toml
+__pycache__/
+*.pyc

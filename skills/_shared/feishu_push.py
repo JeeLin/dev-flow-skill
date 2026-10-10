@@ -25,15 +25,42 @@ import subprocess
 import sys
 import tempfile
 import uuid
+from pathlib import Path
 
 LARK_CLI = shutil.which("lark-cli")
 
 # 收件人**不写死**：本仓库是公开仓库，写死 open_id 等于公开某个人的飞书账号标识。
-# 使用方通过环境变量指定，或用命令行参数显式覆盖：
-#   FEISHU_PUSH_USER_ID / FEISHU_PUSH_CHAT_ID
-#   --user-id <ou_xxx> / --chat-id <oc_xxx>
-DEFAULT_USER_ID = os.environ.get("FEISHU_PUSH_USER_ID", "")
-DEFAULT_CHAT_ID = os.environ.get("FEISHU_PUSH_CHAT_ID", "")
+# 但也不能「只认环境变量」——agent 运行时环境里这些变量通常是空的，那样定时任务
+# 会静默发不出消息。故收件人按以下顺序解析，任何一步命中即可：
+#   1. 命令行 --user-id / --chat-id
+#   2. 环境变量 FEISHU_PUSH_USER_ID / FEISHU_PUSH_CHAT_ID
+#   3. 技能内的 config.toml（部署方自行填写，不入库；见 config.example.toml）
+# 三处都没有时明确报错退出（码 2），绝不静默失败。
+CONFIG_NAME = "feishu_push.toml"
+
+
+def _load_config() -> dict:
+    """读取技能目录内的 config.toml（与脚本同目录或上一级），缺失返回空 dict。"""
+    import tomllib
+
+    here = Path(__file__).resolve().parent
+    for candidate in (here / CONFIG_NAME, here.parent / CONFIG_NAME):
+        try:
+            if candidate.is_file():
+                with candidate.open("rb") as fh:
+                    return tomllib.load(fh)
+        except (OSError, tomllib.TOMLDecodeError):
+            continue
+    return {}
+
+
+CONFIG = _load_config()
+DEFAULT_USER_ID = (
+    os.environ.get("FEISHU_PUSH_USER_ID") or CONFIG.get("user_id", "")
+)
+DEFAULT_CHAT_ID = (
+    os.environ.get("FEISHU_PUSH_CHAT_ID") or CONFIG.get("chat_id", "")
+)
 
 TIMEOUT = int(os.environ.get("FEISHU_PUSH_TIMEOUT", "120"))
 
@@ -81,7 +108,11 @@ def main() -> int:
         return die(2, "refusing to send an empty message")
 
     if not args.chat_id and not args.user_id:
-        return die(2, "no recipient: set --chat-id or --user-id")
+        return die(
+            2,
+            "no recipient: pass --chat-id/--user-id, set FEISHU_PUSH_CHAT_ID/"
+            "FEISHU_PUSH_USER_ID, or fill in feishu_push.toml next to this script",
+        )
 
     target = ["--chat-id", args.chat_id] if args.chat_id else ["--user-id", args.user_id]
 

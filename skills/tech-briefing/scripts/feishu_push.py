@@ -1,56 +1,164 @@
 #!/usr/bin/env python3
-"""技能内转发壳：把调用交给共享实现 `skills/_shared/feishu_push.py`。
+"""技能内 feishu_push（由 scripts/sync_feishu_push.py 从 skills/_shared/ 生成）。
 
-**为什么保留这个文件**：文档与 autopilot 里写死的是技能内的固定路径
-（`.opencode/skills/<技能名>/scripts/feishu_push.py`），且外部守护进程会把这套
-技能物化到每次运行的独立工作目录里。删掉本文件就等于让所有既有调用路径失效，
-因此这里保留一个「薄壳」——按 `__file__` 相对的路径加载共享实现，
-实现本身只在 `skills/_shared/feishu_push.py` 存一份。
+**手动编辑本文件会被覆盖**：改 `skills/_shared/feishu_push.py`，然后跑
+`python3 scripts/sync_feishu_push.py` 重新生成。
 
-选它而不选软链或 importlib 再导出的原因：
-- 软链：部分 git 流程（Windows检出、归档导出、`cp` 不带 -d 的物化）不可靠，
-  断链后 exec 出来是一个语法错误堆栈，很难排查。
-- 再导出：物化到运行目录后 `sys.path` 未必包含 `skills/`，需要额外注入路径，
-  多一层失败模式。
-
-壳里因此显式校验共享文件存在并给出可读报错——共享文件丢失必须是响亮失败，
-而不是 `ImportError: No module named ...` 或一段裸 traceback。
-
-用法（与共享实现完全一致，参数透传）：
-    feishu_push.py --text "..."
-    feishu_push.py --markdown-file ./report.md
-    cat body.md | feishu_push.py --markdown -
-
-退出码沿用共享实现：0 已发送 / 2 用法或环境不对 / 1 发送失败。
+刻意做成自足副本而不是 importlib 引用 `_shared/`：守护进程只物化技能**自身**
+的文件（`.opencode/skills/<技能名>/`），`skills/_shared/` 永远不会出现在运行
+目录里，运行时引用必断。生成方式保证实现只有一份源码、N 份必然可用的副本。
 """
 
 from __future__ import annotations
 
-import importlib.util
+import argparse
+import json
+import os
+import shutil
+import subprocess
 import sys
+import tempfile
+import uuid
 from pathlib import Path
 
-# 共享实现在技能集的兄弟目录：skills/_shared/feishu_push.py
-_SHARED = Path(__file__).resolve().parent.parent.parent / "_shared" / "feishu_push.py"
+LARK_CLI = shutil.which("lark-cli")
+
+# 收件人**不写死**：本仓库是公开仓库，写死 open_id 等于公开某个人的飞书账号标识。
+# 但也不能「只认环境变量」——agent 运行时环境里这些变量通常是空的，那样定时任务
+# 会静默发不出消息。故收件人按以下顺序解析，任何一步命中即可：
+#   1. 命令行 --user-id / --chat-id
+#   2. 环境变量 FEISHU_PUSH_USER_ID / FEISHU_PUSH_CHAT_ID
+#   3. 技能内的 config.toml（部署方自行填写，不入库；见 config.example.toml）
+# 三处都没有时明确报错退出（码 2），绝不静默失败。
+CONFIG_NAME = "feishu_push.toml"
 
 
-def _load_shared():
-    """按 __file__ 相对路径加载共享实现，返回其 main 函数。"""
-    if not _SHARED.is_file():
-        print(
-            f"feishu_push: 缺少共享实现 {_SHARED}；"
-            "本文件只是转发壳，完整逻辑只存在于 skills/_shared/feishu_push.py。",
-            file=sys.stderr,
+def _load_config() -> dict:
+    """读取技能目录内的 config.toml（与脚本同目录或上一级），缺失返回空 dict。"""
+    import tomllib
+
+    here = Path(__file__).resolve().parent
+    for candidate in (here / CONFIG_NAME, here.parent / CONFIG_NAME):
+        try:
+            if candidate.is_file():
+                with candidate.open("rb") as fh:
+                    return tomllib.load(fh)
+        except (OSError, tomllib.TOMLDecodeError):
+            continue
+    return {}
+
+
+CONFIG = _load_config()
+DEFAULT_USER_ID = (
+    os.environ.get("FEISHU_PUSH_USER_ID") or CONFIG.get("user_id", "")
+)
+DEFAULT_CHAT_ID = (
+    os.environ.get("FEISHU_PUSH_CHAT_ID") or CONFIG.get("chat_id", "")
+)
+
+TIMEOUT = int(os.environ.get("FEISHU_PUSH_TIMEOUT", "120"))
+
+
+def die(code: int, message: str) -> "int":
+    print(f"feishu_push: {message}", file=sys.stderr)
+    return code
+
+
+def read_input(
+    markdown: str | None, text: str | None, file_arg: str | None, markdown_file: str | None
+) -> tuple[str, str]:
+    """Return (kind, payload) where kind is 'markdown' or 'text'."""
+    if markdown_file:
+        with open(markdown_file, encoding="utf-8") as fh:
+            return "markdown", fh.read()
+    if file_arg:
+        with open(file_arg, encoding="utf-8") as fh:
+            return ("markdown" if file_arg.endswith(".md") else "text", fh.read())
+    if markdown == "-":
+        return "markdown", sys.stdin.read()
+    if text == "-":
+        return "text", sys.stdin.read()
+    return ("markdown" if markdown else "text", markdown or text or "")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--text")
+    ap.add_argument("--markdown")
+    ap.add_argument("--file", dest="file_arg")
+    ap.add_argument(
+        "--markdown-file", dest="markdown_file", help="read markdown body from this file"
+    )
+    ap.add_argument("--user-id", default=DEFAULT_USER_ID)
+    ap.add_argument("--chat-id", default=DEFAULT_CHAT_ID)
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+
+    if not LARK_CLI:
+        return die(2, "lark-cli not found on PATH")
+
+    kind, payload = read_input(args.markdown, args.text, args.file_arg, args.markdown_file)
+    if not payload.strip():
+        return die(2, "refusing to send an empty message")
+
+    if not args.chat_id and not args.user_id:
+        return die(
+            2,
+            "no recipient: pass --chat-id/--user-id, set FEISHU_PUSH_CHAT_ID/"
+            "FEISHU_PUSH_USER_ID, or fill in feishu_push.toml next to this script",
         )
-        raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location("_shared_feishu_push", _SHARED)
-    if spec is None or spec.loader is None:
-        print(f"feishu_push: 无法加载共享实现 {_SHARED}", file=sys.stderr)
-        raise SystemExit(2)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+
+    target = ["--chat-id", args.chat_id] if args.chat_id else ["--user-id", args.user_id]
+
+    # Bot identity: this app has no user login, and bot tokens are what the
+    # tenant allows for outbound group/p2p messages.
+    cmd = [LARK_CLI, "im", "+messages-send", "--as", "bot", *target]
+    if kind == "markdown":
+        cmd += ["--markdown", payload]
+    else:
+        cmd += ["--text", payload]
+
+    # Keeps retries from double-posting the same report.
+    cmd += ["--idempotency-key", uuid.uuid4().hex[:32]]
+
+    if args.dry_run:
+        cmd.append("--dry-run")
+
+    try:
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=TIMEOUT
+        )
+    except subprocess.TimeoutExpired:
+        return die(1, f"lark-cli timed out after {TIMEOUT}s; message state unknown")
+
+    out = proc.stdout.strip()
+    if proc.returncode != 0:
+        return die(1, f"lark-cli exited {proc.returncode}: {proc.stderr.strip()[:400]}")
+
+    try:
+        parsed = json.loads(out[out.find("{") :])
+    except (ValueError, json.JSONDecodeError):
+        print(out)
+        return 0 if proc.returncode == 0 else 1
+
+    if not parsed.get("ok"):
+        return die(1, f"send rejected: {json.dumps(parsed.get('error', {}), ensure_ascii=False)[:400]}")
+
+    data = parsed.get("data", {})
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "chat_id": data.get("chat_id"),
+                "message_id": data.get("message_id"),
+                "kind": kind,
+                "dry_run": args.dry_run,
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(_load_shared().main())
+    sys.exit(main())

@@ -42,14 +42,17 @@ If the body contains any unsubscribe keyword (退订 / 取消订阅 / preference
 ## Step 3 — deliver the report
 
 Write the report body to `./report.md` in the run's working directory, then push
-it to Feishu. 技能内置一个转发壳，物化在
-`.opencode/skills/email-analysis/scripts/feishu_push.py`；壳本身不含逻辑，
-真正的实现是技能集共享的 `skills/_shared/feishu_push.py`（`tech-briefing`
-复用同一份）。调用路径不变，实现只有一份：
+it to Feishu. 推送脚本随本技能物化在
+`.opencode/skills/email-analysis/scripts/feishu_push.py`，是**自足副本**——
+守护进程只物化技能自身的文件，因此它不引用技能集里的任何兄弟目录：
 
 ```bash
 python3 .opencode/skills/email-analysis/scripts/feishu_push.py --markdown-file ./report.md
 ```
+
+源码唯一一份在 `skills/_shared/feishu_push.py`，各技能目录下的副本由
+`python3 scripts/sync_feishu_push.py` 生成。**改逻辑请改 `_shared/` 再重新生成**，
+直接编辑技能内的副本会被覆盖，且 `scripts/sync_feishu_push.py --check` 会判为漂移。
 
 Success prints `{"ok": true, "message_id": "om_..."}`; failure exits non-zero.
 Retry at most once. 推送失败必须如实报告，不得静默吞掉。
@@ -57,9 +60,19 @@ Retry at most once. 推送失败必须如实报告，不得静默吞掉。
 **若本次运行存在 issue**（即 autopilot 配成 `create_issue`），可额外把同一份正文
 发一条 issue 评论作为审计留档；配成 `run_only` 时**没有 issue 可发**，不要尝试。
 
-收件人**不写死**（本仓库公开，写死 open_id 等于公开个人飞书账号标识）：
-用 `FEISHU_PUSH_USER_ID` / `FEISHU_PUSH_CHAT_ID` 环境变量指定，或用
-`--user-id` / `--chat-id` 参数覆盖；两者都没给时会明确报错并以退出码 2 结束。
+### 收件人从哪来（部署方必须配其一）
+
+收件人**不写死**（本仓库公开，写死 open_id 等于公开个人飞书账号标识）。按优先级解析：
+
+1. `--user-id` / `--chat-id` 参数
+2. `FEISHU_PUSH_USER_ID` / `FEISHU_PUSH_CHAT_ID` 环境变量
+3. 技能脚本同目录（或上一级）的 `feishu_push.toml`，格式见
+   `skills/_shared/config.example.toml`
+
+三处都没有时脚本以退出码 2 明确报错，**不会静默失败**。
+
+⚠️ **agent 运行时的环境变量经常是空的**，只配环境变量的部署会在定时任务里
+逐次失败——所以生产部署应当写 `feishu_push.toml`（该文件名已被 `.gitignore` 排除）。
 凭证在 lark-cli 自身配置（`/root/.lark-cli/config.json`，`0600`），
 不在本技能或脚本里。
 
