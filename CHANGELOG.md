@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **`email-analysis` 技能 + 共享飞书推送脚本 `skills/_shared/feishu_push.py`**：新增技能
+  `skills/email-analysis/`（163.com 未读邮件定时分析），并抽出可复用推送实现
+  `skills/_shared/feishu_push.py`。`email-analysis` 与 `tech-briefing` 各自在
+  `scripts/feishu_push.py` 保留一个转发壳，按 `__file__` 相对路径加载共享实现——
+  不用软链（git 检出/归档/物化易断链，症状是裸 traceback），也不用再导出
+  （物化到运行目录后 `sys.path` 未必含 `skills/`，反而多一层失败模式）。共享文件缺失时
+  壳显式报错并以退出码 2 结束，不静默降级。**收件人不写死**：本仓库公开，写死 open_id
+  等于公开个人飞书账号标识，改由 `FEISHU_PUSH_USER_ID` / `FEISHU_PUSH_CHAT_ID` 或
+  `--user-id` / `--chat-id` 指定，两者皆无时报错退出。
 - **`docs-publish` 飞书通道改为四级优先（CLI > 技能 > 自建 > 跳过）**（事故类：上一条把降级写成
   「委派技能 → 否则自建 HTTP」，方向错了。实测本机已有 `lark-cli` v1.0.97 且 `auth status` 返回
   `available: true`（`brand: feishu`、bot identity ready），而按 env 探测却判定「无飞书推送能力」并准备
