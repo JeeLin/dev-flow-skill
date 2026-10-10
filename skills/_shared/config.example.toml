@@ -1,0 +1,22 @@
+# feishu_push 收件人配置（复制为 feishu_push.toml 后填写）
+#
+# 为什么需要这个文件：技能脚本会**自动**在自身目录（及上一级）查找
+# `feishu_push.toml`，读出下面的 key 作为默认收件人。
+#
+# 收件人解析优先级（高 → 低）：
+#   1. 命令行 `--user-id` / `--chat-id`
+#   2. 环境变量 `FEISHU_PUSH_USER_ID` / `FEISHU_PUSH_CHAT_ID`
+#   3. 本文件
+# 三处都没有时脚本以退出码 2 明确报错，不会静默失败。
+#
+# 为什么不用「只认环境变量」：agent 运行时的环境变量经常是空的，那样定时任务
+# 会在无人察觉的情况下发不出消息——这正是本文件存在的原因。
+#
+# 🔒 本文件（feishu_push.toml）已被 .gitignore 排除，**不要提交**。
+#    `ou_` / `oc_` 开头的是账号标识，公开仓库里写死等于暴露个人账号信息。
+
+# 收件人的飞书 open_id（形如 ou_xxx），二选一与 chat_id：
+user_id = ""
+
+# 群聊 chat_id（形如 oc_xxx）；填了就优先于 user_id：
+chat_id = ""

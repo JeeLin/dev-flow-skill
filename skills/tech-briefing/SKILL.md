@@ -122,6 +122,25 @@ description: 每日科技早报生成器。自动抓取 Hacker News、GitHub Tre
 | 「英文版」 | 输出改为英文 |
 | 「推送到飞书」 | 生成后询问是否需要发送到飞书群聊 |
 
+### 定时任务下的推送（脚本用法）
+
+定时触发（autopilot 走 `run_only`）时不需要询问，直接推：
+
+```bash
+python3 .opencode/skills/tech-briefing/scripts/feishu_push.py --markdown-file ./report.md
+```
+
+脚本随本技能物化在 `.opencode/skills/tech-briefing/scripts/feishu_push.py`，是
+**自足副本**，不引用技能集里的兄弟目录。源码唯一一份在
+`skills/_shared/feishu_push.py`，副本由 `python3 scripts/sync_feishu_push.py`
+生成——**改逻辑改 `_shared/` 再重新生成**，直接编辑技能内副本会被覆盖。
+
+成功输出 `{"ok": true, "message_id": "om_..."}`，失败退出码非 0（重试至多一次，
+并在任务结果里写明失败原因，不得静默吞掉）。收件人按 `--chat-id/--user-id` 参数 →
+`FEISHU_PUSH_CHAT_ID/FEISHU_PUSH_USER_ID` 环境变量 → 技能目录内 `feishu_push.toml`
+的顺序解析；三者都没有时以退出码 2 明确报错。示例见
+`skills/_shared/config.example.toml`。
+
 ## 数据源说明
 
 | 数据源 | 工具 | 特点 |
