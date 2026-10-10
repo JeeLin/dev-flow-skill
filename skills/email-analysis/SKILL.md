@@ -1,6 +1,6 @@
 ---
 name: email-analysis
-description: Scheduled agent-driven analysis of unread 163.com email — IMAP fetch, LLM classify/summary, report to issue.
+description: Scheduled agent-driven analysis of unread 163.com email — IMAP fetch, LLM classify/summary, deliver to Feishu.
 ---
 
 # Email Analysis (unread 163.com)
@@ -25,7 +25,7 @@ The old Hermes assets remain read-only in the Docker volume `test-hermes-zsw75t_
 python3 /opt/email-analyzer/email_analyzer.py --json
 ```
 
-Returns `{"count": N, "emails": [...]}`. Uses `BODY.PEEK[]`, so **fetching never marks mail as read** — runs are idempotent and safe to repeat. If `count == 0`, post `[SILENT]` and stop.
+Returns `{"count": N, "emails": [...]}`. Uses `BODY.PEEK[]`, so **fetching never marks mail as read** — runs are idempotent and safe to repeat. If `count == 0`, stop without pushing (no unread mail means nothing to deliver).
 
 ## Step 2 — analyze each email
 
@@ -39,25 +39,23 @@ For every email, emit exactly:
 
 If the body contains any unsubscribe keyword (退订 / 取消订阅 / preferences / unsubscribe), append `📮 含退订链接` at the end of that email's block.
 
-## Step 3 — deliver the report (both channels)
+## Step 3 — deliver the report
 
-Write the report body to `./report.md` in the run's working directory, then:
+Write the report body to `./report.md` in the run's working directory, then push
+it to Feishu. 技能内置一个转发壳，物化在
+`.opencode/skills/email-analysis/scripts/feishu_push.py`；壳本身不含逻辑，
+真正的实现是技能集共享的 `skills/_shared/feishu_push.py`（`tech-briefing`
+复用同一份）。调用路径不变，实现只有一份：
 
-1. **Push to Feishu.** 技能内置一个转发壳，物化在
-   `.opencode/skills/email-analysis/scripts/feishu_push.py`；壳本身不含逻辑，
-   真正的实现是技能集共享的 `skills/_shared/feishu_push.py`（`tech-briefing`
-   复用同一份）。调用路径不变，实现只有一份：
+```bash
+python3 .opencode/skills/email-analysis/scripts/feishu_push.py --markdown-file ./report.md
+```
 
-   ```bash
-   python3 .opencode/skills/email-analysis/scripts/feishu_push.py --markdown-file ./report.md
-   ```
+Success prints `{"ok": true, "message_id": "om_..."}`; failure exits non-zero.
+Retry at most once. 推送失败必须如实报告，不得静默吞掉。
 
-   Success prints `{"ok": true, "message_id": "om_..."}`; failure exits
-   non-zero. Retry at most once, then continue anyway and note the failure
-   reason in the comment.
-
-2. **Post the same body** as one comment on the run's own issue (keeps the
-   audit trail and notifies subscribers). Do not post progress updates.
+**若本次运行存在 issue**（即 autopilot 配成 `create_issue`），可额外把同一份正文
+发一条 issue 评论作为审计留档；配成 `run_only` 时**没有 issue 可发**，不要尝试。
 
 收件人**不写死**（本仓库公开，写死 open_id 等于公开个人飞书账号标识）：
 用 `FEISHU_PUSH_USER_ID` / `FEISHU_PUSH_CHAT_ID` 环境变量指定，或用
