@@ -137,9 +137,13 @@ python3 .opencode/skills/tech-briefing/scripts/feishu_push.py --markdown-file ./
 
 成功输出 `{"ok": true, "message_id": "om_..."}`，失败退出码非 0（重试至多一次，
 并在任务结果里写明失败原因，不得静默吞掉）。收件人按 `--chat-id/--user-id` 参数 →
-`FEISHU_PUSH_CHAT_ID/FEISHU_PUSH_USER_ID` 环境变量 → 技能目录内 `feishu_push.toml`
+`FEISHU_PUSH_CHAT_ID/FEISHU_PUSH_USER_ID` 环境变量 → 调用方自备的 `feishu_push.toml`
 的顺序解析；三者都没有时以退出码 2 明确报错。示例见
 `skills/_shared/config.example.toml`。
+
+收件人**不要写进本技能**：技能是公开分发的，个人 open_id 属于部署方配置，写死在技能里
+会让所有使用者都推给同一个人。推荐由部署方把收件人写进**自己的定时任务描述**，
+执行时以 `--user-id` 显式传入——配置随定时任务留存，也不会因 `skill refresh` 丢失。
 
 ## 数据源说明
 
