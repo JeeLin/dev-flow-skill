@@ -25,7 +25,11 @@ The old Hermes assets remain read-only in the Docker volume `test-hermes-zsw75t_
 python3 /opt/email-analyzer/email_analyzer.py --json
 ```
 
-Returns `{"count": N, "emails": [...]}`. Uses `BODY.PEEK[]`, so **fetching never marks mail as read** — runs are idempotent and safe to repeat. If `count == 0`, stop without pushing (no unread mail means nothing to deliver).
+Returns `{"count": N, "emails": [...]}`, newest first. If `count == 0`, stop without pushing (no unread mail means nothing to deliver).
+
+⚠️ **Fetching uses `BODY.PEEK[]`, which never sets `\Seen`.** That makes the fetch safe to
+repeat but it also means the unread set never advances on its own — so without Step 4
+every scheduled run re-pushes the same mail. `--mark-seen` is what advances state.
 
 ## Step 2 — analyze each email
 
@@ -59,6 +63,20 @@ Retry at most once. 推送失败必须如实报告，不得静默吞掉。
 
 **若本次运行存在 issue**（即 autopilot 配成 `create_issue`），可额外把同一份正文
 发一条 issue 评论作为审计留档；配成 `run_only` 时**没有 issue 可发**，不要尝试。
+
+## Step 4 — mark delivered mail as read (required)
+
+`BODY.PEEK[]` leaves `\Seen` untouched, so the unread set is frozen across runs. After
+the Feishu push **succeeds**, mark exactly the UIDs that were delivered:
+
+```bash
+python3 /opt/email-analyzer/email_analyzer.py --json --mark-seen <uid1,uid2,...>
+```
+
+Prints `{"marked_seen": ["..."]}`. Use the `uid` field from the Step 1 JSON.
+
+- Only mark what actually went out — a failed push must stay unread so the next run retries it.
+- `count == 0` means nothing was pushed, so there is nothing to mark.
 
 ### 收件人从哪来（部署方必须配其一）
 

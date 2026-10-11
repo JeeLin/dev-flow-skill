@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- **`email-analysis` 定时任务每轮都重复推送同一封邮件（实测复现）**：抓取用 `BODY.PEEK[]`，
+  该指令**故意不置 `\Seen`**，所以服务器端未读集合永远不变。文档此前写的
+  「抓取已用 BODY.PEEK（幂等），同一封邮件最多处理一次」是错的——PEEK 只保证**抓取**可重复，
+  不保证**投递**不重复；没有任何推进状态的动作，每轮定时任务都会把同一封未读再推一遍。
+  - 脚本新增 `--mark-seen`（`UID STORE +FLAGS \Seen`），要求在**推送成功后**显式调用，
+    推进服务器端已读状态；推送失败则不标记，留给下一轮重试，不会丢邮件。
+  - 新增本地已投递清单作为**第二道防线**：抓取时跳过已投递过的 UID。与 `\Seen` 互不依赖——
+    即使某轮在推送成功与标记已读之间异常退出（agent run 确有 `failed` 记录），也不会再推一次。
+  - 修正潜在缺陷：IMAP `SEARCH` 返回升序，脚本原正序取前 `limit` 条；一旦未读数超过 `limit`，
+    最新邮件会被最旧的挤掉、永远轮不到。改为**倒序取**（最新在前）。
 - **`email-analysis` / `tech-briefing` 的飞书推送在部署后会整体失效（两个独立致命缺陷，均已实测复现）**：
   - **转发壳引用不到共享实现**：上一版让技能内脚本用 `importlib` 按相对路径加载
     `skills/_shared/feishu_push.py`。守护进程只物化**技能自身**的文件
